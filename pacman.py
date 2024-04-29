@@ -23,7 +23,7 @@ RIBBON_HEIGHT = 40
 INTERVAL = 10  # try  1000 msec
 
 PLAYER_RADIUS = 30
-SPEED = 10
+SPEED = 2
 
 # GAME GRID
 
@@ -174,39 +174,18 @@ def keyboard_callback(key, x, y):
 def special_keys_callback(key, x, y):
     global player
 
-    new_x = player.x_pos
-    new_y = player.y_pos
-
     if key == GLUT_KEY_RIGHT:
-        new_x += 10
         player.direction = "Moving Right"
         player.texture_ids = [0, 1]
     if key == GLUT_KEY_LEFT:
-        new_x -= 10
         player.direction = "Moving Left"
         player.texture_ids = [2, 3]
     if key == GLUT_KEY_UP:
-        new_y += 10
         player.direction = "Moving Up"
         player.texture_ids = [4, 5]
     if key == GLUT_KEY_DOWN:
-        new_y -= 10
         player.direction = "Moving Down"
         player.texture_ids = [6, 7]
-
-    new_player = player.clone()
-    new_player.teleport(new_x, new_y)
-
-    # Check if the new position is within the game window
-    if not is_colliding_walls(new_player, walls):
-        if new_x - PLAYER_RADIUS / 2 > 0 and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH:
-            player.teleport(new_x, player.y_pos)
-
-        if (
-            new_y - PLAYER_RADIUS / 2 > 0
-            and new_y + PLAYER_RADIUS / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
-        ):
-            player.teleport(player.x_pos, new_y)
 
 
 # def mouse_callback(x, y):
@@ -288,6 +267,33 @@ def draw_game():
     draw_player(player, player.texture_ids)
     draw_fruits()
     draw_walls()
+
+    if player.direction == "Moving Right":
+        new_x = player.x_pos + player.speed
+        new_y = player.y_pos
+    if player.direction == "Moving Left":
+        new_x = player.x_pos - player.speed
+        new_y = player.y_pos
+    if player.direction == "Moving Up":
+        new_x = player.x_pos
+        new_y = player.y_pos + player.speed
+    if player.direction == "Moving Down":
+        new_x = player.x_pos
+        new_y = player.y_pos - player.speed
+
+    new_player = player.clone()
+    new_player.teleport(new_x, new_y)
+
+    # Check if the new position is within the game window
+    if not is_colliding_walls(new_player, walls):
+        if new_x - PLAYER_RADIUS / 2 > 0 and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH:
+            player.teleport(new_x, player.y_pos)
+
+        if (
+            new_y - PLAYER_RADIUS / 2 > 0
+            and new_y + PLAYER_RADIUS / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
+        ):
+            player.teleport(player.x_pos, new_y)
 
     draw_player(ghosts[0], 8)
     draw_player(ghosts[1], 9)
