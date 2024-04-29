@@ -54,27 +54,3 @@ def draw_circle(circle):
         y = circle.y + circle.r * sin(angle)
         glVertex(x, y, 0)
     glEnd()
-
-
-def draw_cutout(circle, start_angle, end_angle):
-    glLoadIdentity()
-    glBegin(GL_POLYGON)
-    starting_x = circle.x
-    starting_y = circle.y
-    glVertex(starting_x, starting_y, 0)
-    for i in range(start_angle, end_angle + 1):
-        angle = i * 3.14159 / 180
-        x = circle.x + circle.r * cos(angle)
-        y = circle.y + circle.r * sin(angle)
-        glVertex(x, y, 0)
-    glVertex(starting_x, starting_y, 0)
-    glEnd()
-
-
-def draw_triangle(triangle):
-    glLoadIdentity()
-    glBegin(GL_TRIANGLES)
-    glVertex(triangle.x1, triangle.y1, 0)
-    glVertex(triangle.x2, triangle.y2, 0)
-    glVertex(triangle.x3, triangle.y3, 0)
-    glEnd()

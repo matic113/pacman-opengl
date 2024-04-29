@@ -143,23 +143,6 @@ def draw_text(string, x, y):
     glPopMatrix()
 
 
-def draw_mouth(player):
-    global plCurrent_state
-
-    glLoadIdentity()
-    glColor(0, 0, 0)  # Black color
-
-    state = plStates[plCurrent_state]
-    if state == "Moving Right":
-        draw_cutout(player, -45, 45)
-    if state == "Moving Up":
-        draw_cutout(player, 45, 135)
-    if state == "Moving Left":
-        draw_cutout(player, 135, 225)
-    if state == "Moving Down":
-        draw_cutout(player, 225, 315)
-
-
 ####################################
 ############# callbacks  ###########
 ####################################
