@@ -23,7 +23,7 @@ RIBBON_HEIGHT = 40
 
 FRAME_INTERVAL = 10  # try  1000 msec
 
-PLAYER_RADIUS = 30
+PLAYER_SIZE = 30
 SPEED = 2
 
 # GAME GRID
@@ -40,11 +40,13 @@ START_X = 224
 START_Y = 216
 
 fruits = []
+
 walls_cords = [
     ((324, 190), (324, 242)),
     ((132, 190), (132, 242)),
     ((174, 238), (280, 238)),
 ]
+
 walls = []
 
 ghosts = []
@@ -73,7 +75,7 @@ def init_window():
 def init_entities():
     global player, walls, ghosts
 
-    player = Player(x=START_X, y=START_Y, size=PLAYER_RADIUS, speed=SPEED)
+    player = Player(x=START_X, y=START_Y, size=PLAYER_SIZE, speed=SPEED)
 
     ghost1 = Ghost(
         x=30,
@@ -138,12 +140,12 @@ def move_player():
 
     # Check if the new position is within the game window
     if not is_colliding_walls(new_player, walls):
-        if new_x - PLAYER_RADIUS / 2 > 0 and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH:
+        if new_x - PLAYER_SIZE / 2 > 0 and new_x + PLAYER_SIZE / 2 < WINDOW_WIDTH:
             player.teleport(new_x, player.y_pos)
 
         if (
-            new_y - PLAYER_RADIUS / 2 > 0
-            and new_y + PLAYER_RADIUS / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
+            new_y - PLAYER_SIZE / 2 > 0
+            and new_y + PLAYER_SIZE / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
         ):
             player.teleport(player.x_pos, new_y)
 
@@ -210,7 +212,7 @@ def check_collision():
     for ghost in ghosts:
         ghost.move()
 
-        if is_colliding_rect(player.rect, ghost.rect):
+        if is_colliding_rect(player, ghost):
             lives -= 1
             player.teleport(START_X, START_Y)
             if lives == 0:
@@ -307,7 +309,7 @@ def draw_game():
 
     draw_fruits()
 
-    draw_walls()  # TODO : WALLS VISIBILITY
+    #draw_walls()  # TODO : WALLS VISIBILITY
 
     for ghost in ghosts:
         draw_entity(ghost, ghost.texture_ids)

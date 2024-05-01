@@ -1,5 +1,5 @@
 from collision import *
-from pacman import PLAYER_RADIUS, RIBBON_HEIGHT, WINDOW_HEIGHT, WINDOW_WIDTH, walls
+from pacman import PLAYER_SIZE, RIBBON_HEIGHT, WINDOW_HEIGHT, WINDOW_WIDTH, walls
 from shapes import *
 from textures import *
 

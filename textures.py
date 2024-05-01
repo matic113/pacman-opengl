@@ -36,21 +36,7 @@ def my_init():
     test_rect = Rectangle(x=230, y=250, length=456, width=496)
 
 
-texture_names = [
-    0,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-]  # TODO IMPORTANT must be numbers
+texture_names = [ x for x in range(13)]  # TODO IMPORTANT must be numbers
 
 
 def texture_setup(texture_image_binary, texture_name, width, height):
