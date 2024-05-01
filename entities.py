@@ -1,4 +1,7 @@
+from collision import *
+from pacman import PLAYER_RADIUS, RIBBON_HEIGHT, WINDOW_HEIGHT, WINDOW_WIDTH, walls
 from shapes import *
+from textures import *
 
 ####################################
 ########### CONSTANTS ###############
@@ -6,6 +9,14 @@ from shapes import *
 WINDOW_WIDTH, WINDOW_HEIGHT = 600, 650
 RIBBON_HEIGHT = 40
 
+WALL_TYPES = {
+    "straight_horizontal": 0,
+    "straight_vertical": 1,
+    "corner_top_left": 2,
+    "corner_top_right": 3,
+    "corner_bottom_left": 4,
+    "corner_bottom_right": 5,
+}
 
 class Player:
     def __init__(self, x, y, size, speed):
@@ -35,10 +46,33 @@ class Player:
 
         self.rect.draw()
 
-    def move(self, dx, dy):
-        self.x_pos += dx
-        self.y_pos += dy
-        self.rect = Rectangle(self.x_pos, self.y_pos, self.length, self.length)
+    def move(self):
+        if self.direction == "Moving Right":
+            new_x = self.x_pos + self.speed
+            new_y = self.y_pos
+        if self.direction == "Moving Left":
+            new_x = self.x_pos - self.speed
+            new_y = self.y_pos
+        if self.direction == "Moving Up":
+            new_x = self.x_pos
+            new_y = self.y_pos + self.speed
+        if self.direction == "Moving Down":
+            new_x = self.x_pos
+            new_y = self.y_pos - self.speed
+
+        new_player = self.clone()
+        new_player.teleport(new_x, new_y)
+
+        # Check if the new position is within the game window
+        if not is_colliding_walls(new_player, walls):
+            if new_x - PLAYER_RADIUS / 2 > 0 and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH:
+                self.teleport(new_x, self.y_pos)
+
+            if (
+                new_y - PLAYER_RADIUS / 2 > 0
+                and new_y + PLAYER_RADIUS / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
+            ):
+                self.teleport(self.x_pos, new_y)
 
     def teleport(self, x, y):
         self.x_pos = x
@@ -129,3 +163,13 @@ class Fruit:
         self.y_pos = y
         self.length = size
         self.rect = Rectangle(x, y, size, size)
+
+
+class Wall:
+    def __init__(self, x, y, length, width):
+        self.rect = Rectangle(x, y, length, width)
+        self.type = "straight_horizontal"
+        self.texture = None
+
+    def draw(self):
+        self.rect.draw()
