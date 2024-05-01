@@ -33,10 +33,24 @@ def my_init():
 
     global test_rect
 
-    test_rect = Rectangle(x=230, y=250, length=456,width= 496)
+    test_rect = Rectangle(x=230, y=250, length=456, width=496)
 
 
-texture_names = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]  # TODO IMPORTANT must be numbers
+texture_names = [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+]  # TODO IMPORTANT must be numbers
 
 
 def texture_setup(texture_image_binary, texture_name, width, height):
@@ -98,7 +112,6 @@ def loadTextures():
     load_and_setup("res/image/power_pellete.png", texture_names[10])
     load_and_setup("res/image/level.png", texture_names[11])
     load_and_setup("res/image/pac_start.png", texture_names[12])
-        
 
 
 def draw_player(Player, texture_ids):
@@ -121,7 +134,7 @@ def draw_player(Player, texture_ids):
                 ANIMATION_FRAME + 1 if ANIMATION_FRAME < 2 * FRAME_DURATION else 0
             )
         else:
-            texture = 12 # pacman_start texture ID
+            texture = 12  # pacman_start texture ID
 
     else:
         texture = texture_ids
@@ -151,12 +164,13 @@ def draw_player(Player, texture_ids):
 
 
 def draw_entity(entity, texture_id):
-    # rect = entity.rect
-
     # glClear(GL_COLOR_BUFFER_BIT)
     # glColor3f(1, 1, 1)  # TODO IMPORTANT
     # glLoadIdentity()
     # glClearColor(0, 0, 0, 0)
+
+    if hasattr(entity, "rect"):
+        entity = entity.rect
 
     glBindTexture(
         GL_TEXTURE_2D, texture_names[texture_id]
@@ -180,14 +194,16 @@ def draw_entity(entity, texture_id):
 
     # glutSwapBuffers()
 
+
 def draw():
     global test_rect
     glClearColor(0, 0, 0, 0)
     glClear(GL_COLOR_BUFFER_BIT)
 
-    draw_entity(test_rect, 11 )
+    draw_entity(test_rect, 11)
 
     glutSwapBuffers()
+
 
 def main():
     glutInit()

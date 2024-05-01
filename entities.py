@@ -18,6 +18,7 @@ WALL_TYPES = {
     "corner_bottom_right": 5,
 }
 
+
 class Player:
     def __init__(self, x, y, size, speed):
         self.x_pos = x
@@ -65,7 +66,10 @@ class Player:
 
         # Check if the new position is within the game window
         if not is_colliding_walls(new_player, walls):
-            if new_x - PLAYER_RADIUS / 2 > 0 and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH:
+            if (
+                new_x - PLAYER_RADIUS / 2 > 0
+                and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH
+            ):
                 self.teleport(new_x, self.y_pos)
 
             if (
@@ -92,7 +96,7 @@ class Player:
 
 
 class Ghost:
-    def __init__(self, x, y, size, speed, starting_block, target_block):
+    def __init__(self, x, y, size, speed, starting_block, target_block, texture_ids):
         self.x_pos = x
         self.y_pos = y
         self.length = size
@@ -101,7 +105,7 @@ class Ghost:
         self.direction = 1
         self.start = starting_block
         self.target = target_block
-        self.texture = None
+        self.texture_ids = texture_ids
 
     def clone(self):
         return Ghost(self.x_pos, self.y_pos, self.length, self.speed)

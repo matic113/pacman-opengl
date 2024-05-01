@@ -13,38 +13,37 @@ from textures import *
 ####################################
 ########### constants ##############
 ####################################
+
 FONT_DOWNSCALE = 0.13
 
-WINDOW_WIDTH = 600
-WINDOW_HEIGHT = 650
+WINDOW_WIDTH = 456
+WINDOW_HEIGHT = 536
 
 RIBBON_HEIGHT = 40
 
-INTERVAL = 10  # try  1000 msec
+FRAME_INTERVAL = 10  # try  1000 msec
 
 PLAYER_RADIUS = 30
 SPEED = 2
 
 # GAME GRID
-
+GRID_SIZE = 8
 ####################################
 ########### game state #############
 ####################################
 
 SCORE = 0
-BEST_SCORE = 9999
+BEST_SCORE = 100
 lives = 3
-player_x = 300
-player_y = 300
 
-plStates = {0: "Moving Up", 1: "Moving Down", 2: "Moving Left", 3: "Moving Right"}
-plCurrent_state = 3
+START_X = 224
+START_Y = 216
 
 fruits = []
 walls_cords = [
-    ((400, 400), (400, 100)),
-    ((200, 400), (200, 100)),
-    ((200, 460), (400, 460)),
+    ((324, 190), (324, 242)),
+    ((132, 190), (132, 242)),
+    ((174, 238), (280, 238)),
 ]
 walls = []
 
@@ -55,7 +54,12 @@ ghosts = []
 ######## graphics helpers ##########
 ####################################
 # Initialization
-def init():
+def init_window():
+    glutInit()
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA)
+    glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+    glutInitWindowPosition(0, 0)
+    glutCreateWindow(b"PacMan OpenGL")
     glClearColor(0.0, 0.0, 0.0, 0.0)
     glEnable(GL_TEXTURE_2D)
     glMatrixMode(GL_PROJECTION)
@@ -65,27 +69,31 @@ def init():
     glMatrixMode(GL_MODELVIEW)
     loadTextures()
 
-    global player
-    global walls
-    global ghosts
-    player = Player(x=300, y=300, size=PLAYER_RADIUS, speed=SPEED)
+
+def init_entities():
+    global player, walls, ghosts
+
+    player = Player(x=START_X, y=START_Y, size=PLAYER_RADIUS, speed=SPEED)
 
     ghost1 = Ghost(
-        x=100,
-        y=50,
+        x=30,
+        y=358,
         size=30,
         speed=1,
-        starting_block=(100, 100),
-        target_block=(500, 100),
+        starting_block=(20, 358),
+        target_block=(20, 470),
+        texture_ids=8,
     )
     ghost2 = Ghost(
-        x=100,
-        y=50,
+        x=30,
+        y=20,
         size=30,
         speed=1,
-        starting_block=(100, 100),
-        target_block=(100, 500),
+        starting_block=(30, 20),
+        target_block=(420, 20),
+        texture_ids=9,
     )
+
     ghosts.append(ghost1)
     ghosts.append(ghost2)
     generate_fruits(10)
@@ -109,23 +117,77 @@ def debug_player(player):
     draw_text(texture, 10, 500)
 
 
-def create_wall(block_1, block_2):
+def move_player():
+    global player
+
+    if player.direction == "Moving Right":
+        new_x = player.x_pos + player.speed
+        new_y = player.y_pos
+    if player.direction == "Moving Left":
+        new_x = player.x_pos - player.speed
+        new_y = player.y_pos
+    if player.direction == "Moving Up":
+        new_x = player.x_pos
+        new_y = player.y_pos + player.speed
+    if player.direction == "Moving Down":
+        new_x = player.x_pos
+        new_y = player.y_pos - player.speed
+
+    new_player = player.clone()
+    new_player.teleport(new_x, new_y)
+
+    # Check if the new position is within the game window
+    if not is_colliding_walls(new_player, walls):
+        if new_x - PLAYER_RADIUS / 2 > 0 and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH:
+            player.teleport(new_x, player.y_pos)
+
+        if (
+            new_y - PLAYER_RADIUS / 2 > 0
+            and new_y + PLAYER_RADIUS / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
+        ):
+            player.teleport(player.x_pos, new_y)
+
+
+def create_wall(start_block, end_block):
     length, width = 0, 0
     x, y = 0, 0
 
-    if block_1[0] == block_2[0]:  # Vertical Wall
-        x = block_1[0]
-        y = (block_1[1] + block_2[1]) / 2
-        length = 10
-        height = abs(block_1[1] - block_2[1]) + 10
+    if start_block[0] == end_block[0]:  # Vertical Wall
+        x = start_block[0]
+        y = (start_block[1] + end_block[1]) / 2
+        length = 8
+        height = abs(start_block[1] - end_block[1]) + 4
 
-    if block_1[1] == block_2[1]:  # Horizontal Wall
-        x = (block_1[0] + block_2[0]) / 2
-        y = block_1[1]
-        length = abs(block_1[0] - block_2[0]) + 10
-        height = 10
+    if start_block[1] == end_block[1]:  # Horizontal Wall
+        x = (start_block[0] + end_block[0]) / 2
+        y = start_block[1]
+        length = abs(start_block[0] - end_block[0]) + 4
+        height = 8
 
     return Wall(x, y, length, height)
+
+
+def draw_score():
+    global SCORE, lives, BEST_SCORE
+
+    string = "SCORE : " + str(SCORE)
+    draw_text(string, x=10, y=WINDOW_HEIGHT - 25)
+    string = "LIVES : " + str(lives)
+    draw_text(string, WINDOW_WIDTH - 110, y=WINDOW_HEIGHT - 25)
+    string = "BEST SCORE"
+    draw_text(string, WINDOW_WIDTH - 280, WINDOW_HEIGHT - 20)
+    string = str(BEST_SCORE)
+    draw_text(string, WINDOW_WIDTH - 240, WINDOW_HEIGHT - 37)
+
+
+def draw_level():
+    level = Rectangle(
+        WINDOW_WIDTH / 2,
+        (WINDOW_HEIGHT - RIBBON_HEIGHT) / 2,
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT - RIBBON_HEIGHT,
+    )
+    draw_entity(level, 11)
 
 
 def draw_text(string, x, y):
@@ -141,6 +203,23 @@ def draw_text(string, x, y):
     for c in string:
         glutStrokeCharacter(GLUT_STROKE_ROMAN, c)  # type: ignore
     glPopMatrix()
+
+
+def check_collision():
+    global ghosts, player, fruits, lives, SCORE
+    for ghost in ghosts:
+        ghost.move()
+
+        if is_colliding_rect(player.rect, ghost.rect):
+            lives -= 1
+            player.teleport(START_X, START_Y)
+            if lives == 0:
+                sys.exit(0)
+
+    for fruit in fruits:
+        if is_colliding_rect(player.rect, fruit.rect):
+            fruits.remove(fruit)
+            SCORE += 10
 
 
 ####################################
@@ -181,10 +260,10 @@ def special_keys_callback(key, x, y):
 ####################################
 
 
-def game_timer(frame):
+def game_loop(frame):
     draw_game()
     print(frame)
-    glutTimerFunc(INTERVAL, game_timer, frame + 1)  # TODO: replace 1 by v+1
+    glutTimerFunc(FRAME_INTERVAL, game_loop, frame + 1)  # TODO: replace 1 by v+1
 
 
 ########################################################
@@ -195,8 +274,8 @@ def generate_fruits(n):
     global fruits
     fruit_radius = 10
     while len(fruits) < n:
-        x = random.randint(0, 60) * 10
-        y = random.randint(0, 61) * 10
+        x = random.randint(1, 56) * 8
+        y = random.randint(1, 61) * 8
 
         fruit = Fruit(x, y, fruit_radius)
         if is_colliding_walls(fruit, walls):
@@ -218,97 +297,36 @@ def draw_walls():
 
 
 def draw_game():
-    global SCORE
-    global player
-    global ghosts
-    global lives
+    global SCORE, lives, player, ghosts
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
-    # draw top ribbon
-    glColor(0.5, 0.5, 0.5)  # Gray color
-    ribbon = Rectangle(
-        WINDOW_WIDTH / 2,
-        WINDOW_HEIGHT - (RIBBON_HEIGHT / 2),
-        WINDOW_WIDTH,
-        RIBBON_HEIGHT,
-    )
-    draw_rectangle(ribbon)
+    draw_score()
+    draw_level()
 
-    # Draw the score,best score and lives
-    string = "SCORE : " + str(SCORE)
-    draw_text(string, 10, 625)
-    string = "LIVES : " + str(lives)
-    draw_text(string, 490, 625)
-    string = "BEST SCORE"
-    draw_text(string, 230, 633)
-    string = str(BEST_SCORE)
-    draw_text(string, 265, 615)
-
-    debug_player(player)
-    draw_player(player, player.texture_ids)
     draw_fruits()
-    draw_walls()
 
-    if player.direction == "Moving Right":
-        new_x = player.x_pos + player.speed
-        new_y = player.y_pos
-    if player.direction == "Moving Left":
-        new_x = player.x_pos - player.speed
-        new_y = player.y_pos
-    if player.direction == "Moving Up":
-        new_x = player.x_pos
-        new_y = player.y_pos + player.speed
-    if player.direction == "Moving Down":
-        new_x = player.x_pos
-        new_y = player.y_pos - player.speed
+    draw_walls()  # TODO : WALLS VISIBILITY
 
-    new_player = player.clone()
-    new_player.teleport(new_x, new_y)
-
-    # Check if the new position is within the game window
-    if not is_colliding_walls(new_player, walls):
-        if new_x - PLAYER_RADIUS / 2 > 0 and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH:
-            player.teleport(new_x, player.y_pos)
-
-        if (
-            new_y - PLAYER_RADIUS / 2 > 0
-            and new_y + PLAYER_RADIUS / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
-        ):
-            player.teleport(player.x_pos, new_y)
-
-    draw_player(ghosts[0], 8)
-    draw_player(ghosts[1], 9)
     for ghost in ghosts:
-        ghost.move()
+        draw_entity(ghost, ghost.texture_ids)
 
-        if is_colliding_rect(player.rect, ghost.rect):
-            lives -= 1
-            player.teleport(300, 300)
-            if lives == 0:
-                sys.exit(0)
-
-    for fruit in fruits:
-        if is_colliding_rect(player.rect, fruit.rect):
-            fruits.remove(fruit)
-            SCORE += 10
-
+    draw_player(player, player.texture_ids)
+    move_player()
+    check_collision()
     player.end_frame()
 
     glutSwapBuffers()
 
 
 def main():
-    # Initialize the game window
-    glutInit()
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA)
-    glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
-    glutInitWindowPosition(0, 0)
-    glutCreateWindow(b"PacMan OpenGL")
-    init()
+    init_entities()
+
+    # openGL Intialization
+    init_window()
     glutDisplayFunc(draw_game)
-    glutTimerFunc(INTERVAL, game_timer, 1)
+    glutTimerFunc(FRAME_INTERVAL, game_loop, 1)
     glutKeyboardFunc(keyboard_callback)
     glutSpecialFunc(special_keys_callback)
     glutMainLoop()
