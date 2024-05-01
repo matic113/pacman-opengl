@@ -2,6 +2,8 @@ import pygame
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 
+from shapes import Rectangle
+
 """
 Texture steps (init)
 1) glEnable(GL_TEXTURE_2D)
@@ -24,13 +26,17 @@ def my_init():
     glEnable(GL_TEXTURE_2D)
     glMatrixMode(GL_PROJECTION)  # ortho or perspective NO BRAINER
     glLoadIdentity()
-    glOrtho(0, 500, 0, 500, 0, 1)  # l,r,b,t,n,f
+    glOrtho(0, 460, 0, 520, 0, 1)  # l,r,b,t,n,f
 
     glMatrixMode(GL_MODELVIEW)
     loadTextures()
 
+    global test_rect
 
-texture_names = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  # TODO IMPORTANT must be numbers
+    test_rect = Rectangle(x=230, y=250, length=456,width= 496)
+
+
+texture_names = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]  # TODO IMPORTANT must be numbers
 
 
 def texture_setup(texture_image_binary, texture_name, width, height):
@@ -79,22 +85,25 @@ def loadTextures():
 
     # Add textures to openGL [2, 3, 5 ,6 ,7]
     # pacman texture is [11 x 6] x 16 pixels
-    load_and_setup("art/right_1.png", texture_names[0])
-    load_and_setup("art/right_2.png", texture_names[1])
-    load_and_setup("art/left_1.png", texture_names[2])
-    load_and_setup("art/left_2.png", texture_names[3])
-    load_and_setup("art/up_1.png", texture_names[4])
-    load_and_setup("art/up_2.png", texture_names[5])
-    load_and_setup("art/down_1.png", texture_names[6])
-    load_and_setup("art/down_2.png", texture_names[7])
-    load_and_setup("art/ghost_yellow.png", texture_names[8])
-    load_and_setup("art/ghost_red.png", texture_names[9])
-    load_and_setup("art/power_pellete.png", texture_names[10])
+    load_and_setup("res/image/right_1.png", texture_names[0])
+    load_and_setup("res/image/right_2.png", texture_names[1])
+    load_and_setup("res/image/left_1.png", texture_names[2])
+    load_and_setup("res/image/left_2.png", texture_names[3])
+    load_and_setup("res/image/up_1.png", texture_names[4])
+    load_and_setup("res/image/up_2.png", texture_names[5])
+    load_and_setup("res/image/down_1.png", texture_names[6])
+    load_and_setup("res/image/down_2.png", texture_names[7])
+    load_and_setup("res/image/ghost_yellow.png", texture_names[8])
+    load_and_setup("res/image/ghost_red.png", texture_names[9])
+    load_and_setup("res/image/power_pellete.png", texture_names[10])
+    load_and_setup("res/image/level.png", texture_names[11])
+    load_and_setup("res/image/pac_start.png", texture_names[12])
+        
 
 
 def draw_player(Player, texture_ids):
-    # glClearColor(0, 0, 0, 0)
     rect = Player.rect
+    # glClearColor(0, 0, 0, 0)
     # glClear(GL_COLOR_BUFFER_BIT)
     # glColor3f(1, 1, 1)  # TODO IMPORTANT
     # glLoadIdentity()
@@ -112,7 +121,7 @@ def draw_player(Player, texture_ids):
                 ANIMATION_FRAME + 1 if ANIMATION_FRAME < 2 * FRAME_DURATION else 0
             )
         else:
-            texture = texture_ids[0]
+            texture = 12 # pacman_start texture ID
 
     else:
         texture = texture_ids
@@ -141,36 +150,44 @@ def draw_player(Player, texture_ids):
     # glutSwapBuffers()
 
 
-def draw(Player):
+def draw_entity(entity, texture_id):
+    # rect = entity.rect
+
+    # glClear(GL_COLOR_BUFFER_BIT)
+    # glColor3f(1, 1, 1)  # TODO IMPORTANT
+    # glLoadIdentity()
     # glClearColor(0, 0, 0, 0)
-    rect = Player.rect
-    glClear(GL_COLOR_BUFFER_BIT)
-    glColor3f(1, 1, 1)  # TODO IMPORTANT
-    glLoadIdentity()
 
     glBindTexture(
-        GL_TEXTURE_2D, texture_names[0]
+        GL_TEXTURE_2D, texture_names[texture_id]
     )  # repeat this if you want to bind another texture
-
     glBegin(GL_QUADS)
     glTexCoord2f(0, 0)  # TODO IMPORTANT: glTexCoord2f must come first before glVertex2d
-    glVertex2d(rect.left, rect.bottom)
+    glVertex2d(entity.left, entity.bottom)
 
     glTexCoord2f(1, 0)
-    glVertex2d(rect.right, rect.bottom)
+    glVertex2d(entity.right, entity.bottom)
 
     glTexCoord2f(1, 1)
-    glVertex2d(rect.right, rect.top)
+    glVertex2d(entity.right, entity.top)
 
     glTexCoord2f(0, 1)
-    glVertex2d(rect.left, rect.top)
+    glVertex2d(entity.left, entity.top)
 
     glEnd()
 
     glBindTexture(GL_TEXTURE_2D, -1)
 
-    glutSwapBuffers()
+    # glutSwapBuffers()
 
+def draw():
+    global test_rect
+    glClearColor(0, 0, 0, 0)
+    glClear(GL_COLOR_BUFFER_BIT)
+
+    draw_entity(test_rect, 11 )
+
+    glutSwapBuffers()
 
 def main():
     glutInit()
