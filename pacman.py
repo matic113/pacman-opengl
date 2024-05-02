@@ -313,7 +313,7 @@ def draw_game():
 
     draw_fruits()
 
-    # draw_walls()  # TODO : WALLS VISIBILITY
+    draw_walls()  # TODO : WALLS VISIBILITY
 
     for ghost in ghosts:
         draw_entity(ghost, ghost.texture_ids)
