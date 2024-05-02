@@ -18,7 +18,7 @@ Texture steps (init)
 """
 
 ANIMATION_FRAME = 0
-FRAME_DURATION = 10
+FRAME_DURATION = 20
 
 
 def my_init():
@@ -36,7 +36,7 @@ def my_init():
     test_rect = Rectangle(x=230, y=250, length=456, width=496)
 
 
-texture_names = [ x for x in range(13)]  # TODO IMPORTANT must be numbers
+texture_names = [x for x in range(13)]  # TODO IMPORTANT must be numbers
 
 
 def texture_setup(texture_image_binary, texture_name, width, height):
@@ -56,7 +56,7 @@ def texture_setup(texture_image_binary, texture_name, width, height):
     glTexImage2D(
         GL_TEXTURE_2D,
         0,  # mipmap
-        3,  # Bytes per pixel
+        GL_RGBA,  # Bytes per pixel
         width,
         height,
         0,  # Texture border
@@ -78,9 +78,9 @@ def loadTextures():
     """Open images and convert them to "raw" pixel maps and
     bind or associate each image with and integer refernece number.
     """
-    glEnable(GL_TEXTURE_2D)  # texture init step 1
-
     # Generate textures names from array
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
     glGenTextures(len(texture_names), texture_names)  # texture init step [4]
 
     # Add textures to openGL [2, 3, 5 ,6 ,7]
@@ -102,10 +102,7 @@ def loadTextures():
 
 def draw_player(Player, texture_ids):
     rect = Player.rect
-    # glClearColor(0, 0, 0, 0)
-    # glClear(GL_COLOR_BUFFER_BIT)
-    # glColor3f(1, 1, 1)  # TODO IMPORTANT
-    # glLoadIdentity()
+
     global ANIMATION_FRAME
     global FRAME_DURATION
     texture = 0

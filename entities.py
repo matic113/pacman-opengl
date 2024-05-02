@@ -66,15 +66,12 @@ class Player:
 
         # Check if the new position is within the game window
         if not is_colliding_walls(new_player, walls):
-            if (
-                new_x - PLAYER_RADIUS / 2 > 0
-                and new_x + PLAYER_RADIUS / 2 < WINDOW_WIDTH
-            ):
+            if new_x - PLAYER_SIZE / 2 > 0 and new_x + PLAYER_SIZE / 2 < WINDOW_WIDTH:
                 self.teleport(new_x, self.y_pos)
 
             if (
-                new_y - PLAYER_RADIUS / 2 > 0
-                and new_y + PLAYER_RADIUS / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
+                new_y - PLAYER_SIZE / 2 > 0
+                and new_y + PLAYER_SIZE / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
             ):
                 self.teleport(self.x_pos, new_y)
 
@@ -172,8 +169,6 @@ class Fruit:
 class Wall:
     def __init__(self, x, y, length, width):
         self.rect = Rectangle(x, y, length, width)
-        self.type = "straight_horizontal"
-        self.texture = None
 
     def draw(self):
         self.rect.draw()

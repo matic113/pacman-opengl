@@ -1,5 +1,6 @@
-import random
+import json
 from math import cos, sin
+from random import randint
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -41,12 +42,6 @@ START_Y = 216
 
 fruits = []
 
-walls_cords = [
-    ((324, 190), (324, 242)),
-    ((132, 190), (132, 242)),
-    ((174, 238), (280, 238)),
-]
-
 walls = []
 
 ghosts = []
@@ -63,7 +58,9 @@ def init_window():
     glutInitWindowPosition(0, 0)
     glutCreateWindow(b"PacMan OpenGL")
     glClearColor(0.0, 0.0, 0.0, 0.0)
+    glDisable(GL_DEPTH_TEST)
     glEnable(GL_TEXTURE_2D)
+    glEnable(GL_BLEND)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     glOrtho(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, 0, 1)
@@ -88,20 +85,27 @@ def init_entities():
     )
     ghost2 = Ghost(
         x=30,
-        y=20,
+        y=24,
         size=30,
         speed=1,
-        starting_block=(30, 20),
-        target_block=(420, 20),
+        starting_block=(30, 28),
+        target_block=(420, 28),
         texture_ids=9,
     )
 
     ghosts.append(ghost1)
     ghosts.append(ghost2)
-    generate_fruits(10)
 
-    for cord in walls_cords:
-        walls.append(create_wall(cord[0], cord[1]))
+    generate_fruits(10)
+    
+    # Load walls from a JSON file
+    with open('walls.json', 'r') as f:
+        walls_data = json.load(f)
+
+    for wall in walls_data:
+        wallxCoord , wallyCoord = wall['Wall_cords']
+        wall_size = wall['Wall_size']
+        walls.append(create_wall(wallxCoord, wallyCoord, wall_size))
 
 
 def debug_player(player):
@@ -150,21 +154,21 @@ def move_player():
             player.teleport(player.x_pos, new_y)
 
 
-def create_wall(start_block, end_block):
-    length, width = 0, 0
+def create_wall(start_block, end_block, wall_size):
     x, y = 0, 0
+    length, height = 0, 0
 
     if start_block[0] == end_block[0]:  # Vertical Wall
         x = start_block[0]
         y = (start_block[1] + end_block[1]) / 2
-        length = 8
-        height = abs(start_block[1] - end_block[1]) + 4
+        length = wall_size
+        height = abs(start_block[1] - end_block[1]) + wall_size / 2
 
     if start_block[1] == end_block[1]:  # Horizontal Wall
         x = (start_block[0] + end_block[0]) / 2
         y = start_block[1]
-        length = abs(start_block[0] - end_block[0]) + 4
-        height = 8
+        length = abs(start_block[0] - end_block[0]) + wall_size / 2
+        height = wall_size
 
     return Wall(x, y, length, height)
 
@@ -276,8 +280,8 @@ def generate_fruits(n):
     global fruits
     fruit_radius = 10
     while len(fruits) < n:
-        x = random.randint(1, 56) * 8
-        y = random.randint(1, 61) * 8
+        x = randint(1, 56) * 8
+        y = randint(1, 61) * 8
 
         fruit = Fruit(x, y, fruit_radius)
         if is_colliding_walls(fruit, walls):
@@ -309,7 +313,7 @@ def draw_game():
 
     draw_fruits()
 
-    #draw_walls()  # TODO : WALLS VISIBILITY
+    # draw_walls()  # TODO : WALLS VISIBILITY
 
     for ghost in ghosts:
         draw_entity(ghost, ghost.texture_ids)
