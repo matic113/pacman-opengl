@@ -1,3 +1,4 @@
+import pygame    
 import json
 from math import cos, sin
 from random import randint
@@ -29,6 +30,14 @@ SPEED = 2
 
 # GAME GRID
 GRID_SIZE = 8
+
+##################Load Sounds###########
+
+def load_sounds():
+    global eat_sound, game_over_sound, lose_life_sound
+    eat_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_eatfruit.wav")
+   
+    lose_life_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_death.wav")
 ####################################
 ########### game state #############
 ####################################
@@ -218,6 +227,7 @@ def check_collision():
 
         if is_colliding_rect(player, ghost):
             lives -= 1
+            lose_life_sound.play()
             player.teleport(START_X, START_Y)
             if lives == 0:
                 sys.exit(0)
@@ -226,6 +236,7 @@ def check_collision():
         if is_colliding_rect(player.rect, fruit.rect):
             fruits.remove(fruit)
             SCORE += 10
+            eat_sound.play()
 
 
 ####################################
@@ -327,6 +338,8 @@ def draw_game():
 
 
 def main():
+    pygame.mixer.init()
+    
     init_entities()
 
     # openGL Intialization
