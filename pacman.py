@@ -27,7 +27,7 @@ RIBBON_HEIGHT = 40
 FRAME_INTERVAL = 10  # try  1000 msec
 
 PLAYER_SIZE = 30
-SPEED = 2
+SPEED = 1.5
 
 # GAME GRID
 GRID_SIZE = 8
@@ -96,7 +96,7 @@ def init_window():
 
 
 def init_entities():
-    global player, walls, ghosts
+    global player, walls, ghosts, fruits
 
     player = Player(x=START_X, y=START_Y, size=PLAYER_SIZE, speed=SPEED)
 
@@ -121,17 +121,32 @@ def init_entities():
 
     ghosts.append(ghost1)
     ghosts.append(ghost2)
-
-    generate_fruits(10)
     
     # Load walls from a JSON file
     with open('walls.json', 'r') as f:
         walls_data = json.load(f)
 
     for wall in walls_data:
-        wallxCoord , wallyCoord = wall['Wall_cords']
+        wallStartBlock , wallEndBlock = wall['Wall_cords']
         wall_size = wall['Wall_size']
-        walls.append(create_wall(wallxCoord, wallyCoord, wall_size))
+        walls.append(create_wall(wallStartBlock, wallEndBlock, wall_size))
+    
+    
+    with open('fruits.json', 'r') as z:
+        fruits_data = json.load(z)
+
+    for fruit in fruits_data:
+        x, y = fruit['position']
+        if fruit['type'] == 'normal':
+            fruit_size = 10
+            fruit_type = 'normal'
+        elif fruit['type'] == 'super':
+            fruit_size = 15
+            fruit_type = 'super'
+
+        fruit = Fruit(x, y, fruit_size, fruit_type)
+        fruits.append(fruit)
+
 
 
 def debug_player(player):
@@ -249,7 +264,10 @@ def check_collision():
     for fruit in fruits:
         if is_colliding_rect(player.rect, fruit.rect):
             fruits.remove(fruit)
-            SCORE += 10
+            if fruit.type == "normal":
+                SCORE += 10
+            elif fruit.type == "super":
+                SCORE += 50
             eat_sound.play()
 
 
@@ -318,7 +336,10 @@ def generate_fruits(n):
 
 def draw_fruits():
     for fruit in fruits:
-        draw_player(fruit, 10)
+        if fruit.type == "normal":
+            draw_entity(fruit, 13)
+        elif fruit.type == "super":
+            draw_entity(fruit, 10)
 
 
 def draw_walls():

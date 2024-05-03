@@ -36,7 +36,7 @@ def my_init():
     test_rect = Rectangle(x=230, y=250, length=456, width=496)
 
 
-texture_names = [x for x in range(13)]  # TODO IMPORTANT must be numbers
+texture_names = [x for x in range(14)]  # TODO IMPORTANT must be numbers
 
 
 def texture_setup(texture_image_binary, texture_name, width, height):
@@ -98,6 +98,7 @@ def loadTextures():
     load_and_setup("res/image/power_pellete.png", texture_names[10])
     load_and_setup("res/image/level.png", texture_names[11])
     load_and_setup("res/image/pac_start.png", texture_names[12])
+    load_and_setup("res/image/pellete.png", texture_names[13])
 
 
 def draw_player(Player, texture_ids):
@@ -178,12 +179,45 @@ def draw_entity(entity, texture_id):
     # glutSwapBuffers()
 
 
+def playAnimation(entity, sprite_atlas):
+    # glClear(GL_COLOR_BUFFER_BIT)
+    # glColor3f(1, 1, 1)  # TODO IMPORTANT
+    # glLoadIdentity()
+    # glClearColor(0, 0, 0, 0)
+
+    if hasattr(entity, "rect"):
+        entity = entity.rect
+    
+    index = 0
+    tex_xcoord = index / 11
+
+    glBindTexture(
+        GL_TEXTURE_2D, texture_names[sprite_atlas]
+    )  # repeat this if you want to bind another texture
+    glBegin(GL_QUADS)
+    glTexCoord2f(tex_xcoord, 0)  # TODO IMPORTANT: glTexCoord2f must come first before glVertex2d
+    glVertex2d(entity.left, entity.bottom)
+
+    glTexCoord2f(tex_xcoord + (16 / 176), 0)
+    glVertex2d(entity.right, entity.bottom)
+
+    glTexCoord2f(tex_xcoord + (16 / 176), 1)
+    glVertex2d(entity.right, entity.top)
+
+    glTexCoord2f(tex_xcoord, 1)
+    glVertex2d(entity.left, entity.top)
+
+    glEnd()
+
+    glBindTexture(GL_TEXTURE_2D, -1)
+
+    
 def draw():
     global test_rect
     glClearColor(0, 0, 0, 0)
     glClear(GL_COLOR_BUFFER_BIT)
 
-    draw_entity(test_rect, 11)
+    playAnimation(test_rect, 13)
 
     glutSwapBuffers()
 
