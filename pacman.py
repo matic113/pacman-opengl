@@ -1,8 +1,9 @@
-import pygame    
 import json
+import time
 from math import cos, sin
 from random import randint
 
+import pygame
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
@@ -33,11 +34,27 @@ GRID_SIZE = 8
 
 ##################Load Sounds###########
 
-def load_sounds():
-    global eat_sound, game_over_sound, lose_life_sound
-    eat_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_eatfruit.wav")
-   
-    lose_life_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_death.wav")
+def init_sound():
+    pygame.mixer.init()
+
+    global eat_sound, game_over_sound, death_sound 
+    eat_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_chomp.wav")
+    death_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_death.wav")
+
+def playDeathAnimation(player):
+    global lives
+
+    player.can_move = False
+    lives -= 1
+    death_sound.play()
+    time.sleep(1.2)
+    player.teleport(START_X, START_Y)
+    player.can_move = True
+
+    if lives == 0:
+        sys.exit(0)
+
+
 ####################################
 ########### game state #############
 ####################################
@@ -152,7 +169,7 @@ def move_player():
     new_player.teleport(new_x, new_y)
 
     # Check if the new position is within the game window
-    if not is_colliding_walls(new_player, walls):
+    if not is_colliding_walls(new_player, walls) and player.can_move:
         if new_x - PLAYER_SIZE / 2 > 0 and new_x + PLAYER_SIZE / 2 < WINDOW_WIDTH:
             player.teleport(new_x, player.y_pos)
 
@@ -222,15 +239,12 @@ def draw_text(string, x, y):
 
 def check_collision():
     global ghosts, player, fruits, lives, SCORE
+
     for ghost in ghosts:
         ghost.move()
 
         if is_colliding_rect(player, ghost):
-            lives -= 1
-            lose_life_sound.play()
-            player.teleport(START_X, START_Y)
-            if lives == 0:
-                sys.exit(0)
+            playDeathAnimation(player)
 
     for fruit in fruits:
         if is_colliding_rect(player.rect, fruit.rect):
@@ -338,9 +352,9 @@ def draw_game():
 
 
 def main():
-    pygame.mixer.init()
-    
+
     init_entities()
+    init_sound()
 
     # openGL Intialization
     init_window()
