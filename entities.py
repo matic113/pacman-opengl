@@ -9,16 +9,6 @@ from textures import *
 WINDOW_WIDTH, WINDOW_HEIGHT = 600, 650
 RIBBON_HEIGHT = 40
 
-WALL_TYPES = {
-    "straight_horizontal": 0,
-    "straight_vertical": 1,
-    "corner_top_left": 2,
-    "corner_top_right": 3,
-    "corner_bottom_left": 4,
-    "corner_bottom_right": 5,
-}
-
-
 class Player:
     def __init__(self, x, y, size, speed):
         self.x_pos = x
@@ -31,6 +21,7 @@ class Player:
         self.direction = "Moving Right"
         self.texture_ids = [0, 1]
         self.frame_counter = 0
+        self.can_move = True
 
     def clone(self):
         return Player(self.x_pos, self.y_pos, self.length, self.speed)
