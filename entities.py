@@ -163,3 +163,11 @@ class Wall:
 
     def draw(self):
         self.rect.draw()
+
+
+class Test:
+    def __init__(self, x, y, size):
+        self.x_pos = x
+        self.y_pos = y
+        self.length = size
+        self.rect = Rectangle(x, y, size, size)
