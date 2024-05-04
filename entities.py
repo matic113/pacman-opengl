@@ -11,7 +11,8 @@ RIBBON_HEIGHT = 40
 
 class Player:
     FRAME_UPDATE_INTERVAL = 20
-    EMPOWERED_DURATION = 460 # 500 frames * 20ms = 10 seconds
+    EMPOWERED_DURATION = 500  # 500 frames * 20ms = 10 seconds
+
     def __init__(self, x: int, y: int, size: int, speed: int):
         """Initialize a new player."""
         self.x_pos = x

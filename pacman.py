@@ -195,14 +195,16 @@ def move_player():
 
     # Check if the new position is within the game window
     if not is_colliding_walls(new_player, walls) and player.can_move:
-        if new_x - PLAYER_SIZE / 2 > 0 and new_x + PLAYER_SIZE / 2 < WINDOW_WIDTH:
+            
             player.teleport(new_x, player.y_pos)
-
-        if (
-            new_y - PLAYER_SIZE / 2 > 0
-            and new_y + PLAYER_SIZE / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
-        ):
             player.teleport(player.x_pos, new_y)
+
+            #Portal Effect
+            if new_x > WINDOW_WIDTH:
+                player.teleport(0, player.y_pos)
+            if new_x < 0:
+                player.teleport(WINDOW_WIDTH, player.y_pos)
+
 
 
 def keep_score():

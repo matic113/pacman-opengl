@@ -1,13 +1,10 @@
-
-
 def is_colliding_rect(rect1, rect2):
-    
     if hasattr(rect1, "rect"):
         rect1 = rect1.rect
     if hasattr(rect2, "rect"):
         rect2 = rect2.rect
 
-    buffer = 10 # pixel buffer for collision
+    buffer = 10  # pixel buffer for collision
 
     if rect1.right < rect2.left + buffer:
         return False
