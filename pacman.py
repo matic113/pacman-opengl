@@ -32,14 +32,22 @@ SPEED = 1.5
 # GAME GRID
 GRID_SIZE = 8
 
+# Atlas SIZE
+
+PLAYER_ATLAS_SIZE = 9
+GHOST_ATLAS_SIZE = 11
+PLAYER_DEATH_ATLAS_SIZE = 11
+
 ##################Load Sounds###########
+
 
 def init_sound():
     pygame.mixer.init()
 
-    global eat_sound, game_over_sound, death_sound 
+    global eat_sound, game_over_sound, death_sound
     eat_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_chomp.wav")
     death_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_death.wav")
+
 
 def playDeathAnimation(player):
     global lives
@@ -107,7 +115,7 @@ def init_entities():
         speed=1,
         starting_block=(20, 358),
         target_block=(20, 470),
-        texture_ids=8,
+        ghost_color="red",
     )
     ghost2 = Ghost(
         x=30,
@@ -116,37 +124,35 @@ def init_entities():
         speed=1,
         starting_block=(30, 28),
         target_block=(420, 28),
-        texture_ids=9,
+        ghost_color="blue",
     )
 
     ghosts.append(ghost1)
     ghosts.append(ghost2)
-    
+
     # Load walls from a JSON file
-    with open('walls.json', 'r') as f:
+    with open("walls.json", "r") as f:
         walls_data = json.load(f)
 
     for wall in walls_data:
-        wallStartBlock , wallEndBlock = wall['Wall_cords']
-        wall_size = wall['Wall_size']
+        wallStartBlock, wallEndBlock = wall["Wall_cords"]
+        wall_size = wall["Wall_size"]
         walls.append(create_wall(wallStartBlock, wallEndBlock, wall_size))
-    
-    
-    with open('fruits.json', 'r') as z:
+
+    with open("fruits.json", "r") as z:
         fruits_data = json.load(z)
 
     for fruit in fruits_data:
-        x, y = fruit['position']
-        if fruit['type'] == 'normal':
-            fruit_size = 10
-            fruit_type = 'normal'
-        elif fruit['type'] == 'super':
-            fruit_size = 15
-            fruit_type = 'super'
+        x, y = fruit["position"]
+        if fruit["type"] == "normal":
+            fruit_size = 8
+            fruit_type = "normal"
+        elif fruit["type"] == "super":
+            fruit_size = 16
+            fruit_type = "super"
 
         fruit = Fruit(x, y, fruit_size, fruit_type)
         fruits.append(fruit)
-
 
 
 def debug_player(player):
@@ -234,7 +240,8 @@ def draw_level():
         WINDOW_WIDTH,
         WINDOW_HEIGHT - RIBBON_HEIGHT,
     )
-    draw_entity(level, 11)
+
+    draw_entity(level, sprite_id["level"])
 
 
 def draw_text(string, x, y):
@@ -252,6 +259,18 @@ def draw_text(string, x, y):
     glPopMatrix()
 
 
+def draw_ghosts():
+    global ghosts, player
+    
+    for ghost in ghosts:
+        if player.empowered:
+            ghost_tex = [8, 9]
+        else:
+            ghost_tex = ghost.texture_ids
+
+        draw_from_atlas(ghost,sprite_id["ghosts"],GHOST_ATLAS_SIZE, ghost_tex)
+
+
 def check_collision():
     global ghosts, player, fruits, lives, SCORE
 
@@ -259,7 +278,11 @@ def check_collision():
         ghost.move()
 
         if is_colliding_rect(player, ghost):
-            playDeathAnimation(player)
+            if player.empowered:
+                ghosts.remove(ghost)
+                SCORE += 200
+            else:
+                playDeathAnimation(player)
 
     for fruit in fruits:
         if is_colliding_rect(player.rect, fruit.rect):
@@ -267,6 +290,7 @@ def check_collision():
             if fruit.type == "normal":
                 SCORE += 10
             elif fruit.type == "super":
+                player.empowered = True
                 SCORE += 50
             eat_sound.play()
 
@@ -287,16 +311,16 @@ def special_keys_callback(key, x, y):
 
     if key == GLUT_KEY_RIGHT:
         player.direction = "Moving Right"
-        player.texture_ids = [0, 1]
+        player.texture_ids = [1, 2]
     if key == GLUT_KEY_LEFT:
         player.direction = "Moving Left"
-        player.texture_ids = [2, 3]
+        player.texture_ids = [3, 4]
     if key == GLUT_KEY_UP:
         player.direction = "Moving Up"
-        player.texture_ids = [4, 5]
+        player.texture_ids = [5, 6]
     if key == GLUT_KEY_DOWN:
         player.direction = "Moving Down"
-        player.texture_ids = [6, 7]
+        player.texture_ids = [7, 8]
 
 
 # def mouse_callback(x, y):
@@ -349,7 +373,7 @@ def draw_walls():
 
 
 def draw_game():
-    global SCORE, lives, player, ghosts
+    global SCORE, lives, player
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
@@ -361,10 +385,10 @@ def draw_game():
 
     draw_walls()  # TODO : WALLS VISIBILITY
 
-    for ghost in ghosts:
-        draw_entity(ghost, ghost.texture_ids)
+    draw_ghosts()
 
-    draw_player(player, player.texture_ids)
+    # draw(player,player.texture_ids)
+    draw_from_atlas(player, sprite_id["pacman"], PLAYER_ATLAS_SIZE, player.texture_ids)
     move_player()
     check_collision()
     player.end_frame()
@@ -373,7 +397,6 @@ def draw_game():
 
 
 def main():
-
     init_entities()
     init_sound()
 

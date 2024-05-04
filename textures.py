@@ -4,21 +4,24 @@ from OpenGL.GLUT import *
 
 from shapes import Rectangle
 
-"""
-Texture steps (init)
-1) glEnable(GL_TEXTURE_2D)
-2) pygame.image.load("1.png")
-3) pygame.image.tostring(image, "RGBA", True)
-4) glGenTextures(len(images), texture_names) # create identifiers for textures
-5) glBindTexture(GL_TEXTURE_2D, texture_name) # modify THIS IDENTIFIER
-6) glTexParameterf (many of those) # set the parameters
-7) glTexImage2D # feed the binary image to opengl(Usage)
-1) glBindTexture(GL_TEXTURE_2D, texture_name) # use THIS IDENTIFIER
-2) glTexCoord(0, 0) repeat this
-"""
-
 ANIMATION_FRAME = 0
 FRAME_DURATION = 20
+
+sprites = {
+    "pacman": "res/image/pacman.png",
+    "ghosts": "res/image/ghosts.png",
+    "pellete": "res/image/pellete.png",
+    "power_pellete": "res/image/power_pellete.png",
+    "level": "res/image/level.png",
+}
+
+sprite_id = {
+    "pacman": 0,
+    "ghosts": 1,
+    "pellete": 2,
+    "power_pellete": 3,
+    "level": 4,
+}
 
 
 def my_init():
@@ -36,7 +39,7 @@ def my_init():
     test_rect = Rectangle(x=230, y=250, length=456, width=496)
 
 
-texture_names = [x for x in range(14)]  # TODO IMPORTANT must be numbers
+texture_names = [x for x in range(15)]  # TODO IMPORTANT must be numbers
 
 
 def texture_setup(texture_image_binary, texture_name, width, height):
@@ -85,20 +88,9 @@ def loadTextures():
 
     # Add textures to openGL [2, 3, 5 ,6 ,7]
     # pacman texture is [11 x 6] x 16 pixels
-    load_and_setup("res/image/right_1.png", texture_names[0])
-    load_and_setup("res/image/right_2.png", texture_names[1])
-    load_and_setup("res/image/left_1.png", texture_names[2])
-    load_and_setup("res/image/left_2.png", texture_names[3])
-    load_and_setup("res/image/up_1.png", texture_names[4])
-    load_and_setup("res/image/up_2.png", texture_names[5])
-    load_and_setup("res/image/down_1.png", texture_names[6])
-    load_and_setup("res/image/down_2.png", texture_names[7])
-    load_and_setup("res/image/ghost_yellow.png", texture_names[8])
-    load_and_setup("res/image/ghost_red.png", texture_names[9])
-    load_and_setup("res/image/power_pellete.png", texture_names[10])
-    load_and_setup("res/image/level.png", texture_names[11])
-    load_and_setup("res/image/pac_start.png", texture_names[12])
-    load_and_setup("res/image/pellete.png", texture_names[13])
+
+    for key, value in sprites.items():
+        load_and_setup(value, sprite_id[key])
 
 
 def draw_player(Player, texture_ids):
@@ -179,45 +171,60 @@ def draw_entity(entity, texture_id):
     # glutSwapBuffers()
 
 
-def playAnimation(entity, sprite_atlas):
-    # glClear(GL_COLOR_BUFFER_BIT)
-    # glColor3f(1, 1, 1)  # TODO IMPORTANT
-    # glLoadIdentity()
-    # glClearColor(0, 0, 0, 0)
+def draw_from_atlas(entity, sprite_atlas_id, atlas_size, texture_idx):
+    global ANIMATION_FRAME, FRAME_DURATION
 
     if hasattr(entity, "rect"):
-        entity = entity.rect
-    
-    index = 0
-    tex_xcoord = index / 11
+        rect = entity.rect
+
+    texture = 0
+
+    if type(texture_idx) == list:
+        if hasattr(entity, "is_moving") and not entity.is_moving:
+            texture = 0
+        else:
+            if ANIMATION_FRAME < FRAME_DURATION:
+                texture = texture_idx[0]
+            elif ANIMATION_FRAME > FRAME_DURATION:
+                texture = texture_idx[1]
+
+            ANIMATION_FRAME = (
+                ANIMATION_FRAME + 1 if ANIMATION_FRAME < 2 * FRAME_DURATION else 0
+            )
+
+    tex_coord = texture * 1 / atlas_size
+    sprite_width = 16 / (atlas_size * 16)
 
     glBindTexture(
-        GL_TEXTURE_2D, texture_names[sprite_atlas]
+        GL_TEXTURE_2D, texture_names[sprite_atlas_id]
     )  # repeat this if you want to bind another texture
+
     glBegin(GL_QUADS)
-    glTexCoord2f(tex_xcoord, 0)  # TODO IMPORTANT: glTexCoord2f must come first before glVertex2d
-    glVertex2d(entity.left, entity.bottom)
+    glTexCoord2f(
+        tex_coord, 0
+    )  # TODO IMPORTANT: glTexCoord2f must come first before glVertex2d
+    glVertex2d(rect.left, rect.bottom)
 
-    glTexCoord2f(tex_xcoord + (16 / 176), 0)
-    glVertex2d(entity.right, entity.bottom)
+    glTexCoord2f(tex_coord + sprite_width, 0)
+    glVertex2d(rect.right, rect.bottom)
 
-    glTexCoord2f(tex_xcoord + (16 / 176), 1)
-    glVertex2d(entity.right, entity.top)
+    glTexCoord2f(tex_coord + sprite_width, 1)
+    glVertex2d(rect.right, rect.top)
 
-    glTexCoord2f(tex_xcoord, 1)
-    glVertex2d(entity.left, entity.top)
+    glTexCoord2f(tex_coord, 1)
+    glVertex2d(rect.left, rect.top)
 
     glEnd()
 
     glBindTexture(GL_TEXTURE_2D, -1)
 
-    
+
 def draw():
     global test_rect
     glClearColor(0, 0, 0, 0)
     glClear(GL_COLOR_BUFFER_BIT)
 
-    playAnimation(test_rect, 13)
+    # playAnimation(test_rect, 13)
 
     glutSwapBuffers()
 

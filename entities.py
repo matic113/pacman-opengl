@@ -1,5 +1,4 @@
 from collision import *
-from pacman import PLAYER_SIZE, RIBBON_HEIGHT, WINDOW_HEIGHT, WINDOW_WIDTH, walls
 from shapes import *
 from textures import *
 
@@ -8,6 +7,8 @@ from textures import *
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 600, 650
 RIBBON_HEIGHT = 40
+
+ghost_textures = { "yellow" : [0, 1], "red" : [2, 3], "blue" : [4, 5],"pink" : [6, 7]}
 
 class Player:
     def __init__(self, x, y, size, speed):
@@ -19,52 +20,14 @@ class Player:
         self.speed = speed
         self.rect = Rectangle(x, y, size, size)
         self.direction = "Moving Right"
-        self.texture_ids = [0, 1]
+        self.texture_ids = [1, 2]
         self.frame_counter = 0
         self.can_move = True
+        self.empowered = False
+        self.empowered_timer = 0
 
     def clone(self):
         return Player(self.x_pos, self.y_pos, self.length, self.speed)
-
-    def draw(self):
-        if self.direction == "Moving Right":
-            self.texture_id = 0
-        elif self.direction == "Moving Left":
-            self.texture_id = 1
-        elif self.direction == "Moving Up":
-            self.texture_id = 2
-        elif self.direction == "Moving Down":
-            self.texture_id = 3
-
-        self.rect.draw()
-
-    def move(self):
-        if self.direction == "Moving Right":
-            new_x = self.x_pos + self.speed
-            new_y = self.y_pos
-        if self.direction == "Moving Left":
-            new_x = self.x_pos - self.speed
-            new_y = self.y_pos
-        if self.direction == "Moving Up":
-            new_x = self.x_pos
-            new_y = self.y_pos + self.speed
-        if self.direction == "Moving Down":
-            new_x = self.x_pos
-            new_y = self.y_pos - self.speed
-
-        new_player = self.clone()
-        new_player.teleport(new_x, new_y)
-
-        # Check if the new position is within the game window
-        if not is_colliding_walls(new_player, walls):
-            if new_x - PLAYER_SIZE / 2 > 0 and new_x + PLAYER_SIZE / 2 < WINDOW_WIDTH:
-                self.teleport(new_x, self.y_pos)
-
-            if (
-                new_y - PLAYER_SIZE / 2 > 0
-                and new_y + PLAYER_SIZE / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
-            ):
-                self.teleport(self.x_pos, new_y)
 
     def teleport(self, x, y):
         self.x_pos = x
@@ -78,13 +41,19 @@ class Player:
             self.prev_y = self.y_pos
             self.frame_counter = 0
 
+        if self.empowered:
+            self.empowered_timer += 1
+            if self.empowered_timer >= 1000:
+                self.empowered = False
+                self.empowered_timer = 0
+
     @property
     def is_moving(self):
         return self.x_pos != self.prev_x or self.y_pos != self.prev_y
 
 
 class Ghost:
-    def __init__(self, x, y, size, speed, starting_block, target_block, texture_ids):
+    def __init__(self, x, y, size, speed, starting_block, target_block, ghost_color):
         self.x_pos = x
         self.y_pos = y
         self.length = size
@@ -93,7 +62,8 @@ class Ghost:
         self.direction = 1
         self.start = starting_block
         self.target = target_block
-        self.texture_ids = texture_ids
+        self.texture_ids = ghost_textures[ghost_color]
+
 
     def clone(self):
         return Ghost(self.x_pos, self.y_pos, self.length, self.speed)
