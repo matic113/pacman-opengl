@@ -8,7 +8,8 @@ from textures import *
 WINDOW_WIDTH, WINDOW_HEIGHT = 600, 650
 RIBBON_HEIGHT = 40
 
-ghost_textures = { "yellow" : [0, 1], "red" : [2, 3], "blue" : [4, 5],"pink" : [6, 7]}
+ghost_textures = {"yellow": [0, 1], "red": [2, 3], "blue": [4, 5], "pink": [6, 7]}
+
 
 class Player:
     def __init__(self, x, y, size, speed):
@@ -63,7 +64,6 @@ class Ghost:
         self.start = starting_block
         self.target = target_block
         self.texture_ids = ghost_textures[ghost_color]
-
 
     def clone(self):
         return Ghost(self.x_pos, self.y_pos, self.length, self.speed)
@@ -131,6 +131,9 @@ class Fruit:
 class Wall:
     def __init__(self, x, y, length, width):
         self.rect = Rectangle(x, y, length, width)
+        self.color = (1, 1, 1)
 
     def draw(self):
+        glColor(self.color)
         self.rect.draw()
+        glColor(1, 1, 1)

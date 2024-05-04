@@ -23,5 +23,8 @@ def is_colliding_walls(player, walls):
             and player.rect.bottom < wall.rect.top
             and player.rect.top > wall.rect.bottom
         ):
+            wall.color = (1, 0, 0)
             return True
+        else:
+            wall.color = (1, 1, 1)
     return False

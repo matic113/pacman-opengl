@@ -24,10 +24,12 @@ WINDOW_HEIGHT = 536
 
 RIBBON_HEIGHT = 40
 
-FRAME_INTERVAL = 10  # try  1000 msec
+FRAME_INTERVAL = 20  # try  1000 msec
 
-PLAYER_SIZE = 30
-SPEED = 1.5
+PLAYER_SIZE = 32
+PLAYER_SPEED = 2
+
+GHOST_SPEED = PLAYER_SPEED
 
 # GAME GRID
 GRID_SIZE = 8
@@ -68,7 +70,7 @@ def playDeathAnimation(player):
 ####################################
 
 SCORE = 0
-BEST_SCORE = 100
+BEST_SCORE = 0
 lives = 3
 
 START_X = 224
@@ -104,24 +106,27 @@ def init_window():
 
 
 def init_entities():
-    global player, walls, ghosts, fruits
+    global player, walls, ghosts, fruits, BEST_SCORE
 
-    player = Player(x=START_X, y=START_Y, size=PLAYER_SIZE, speed=SPEED)
+    with open("data/best_score.txt", "r") as f:
+        BEST_SCORE = int(f.read())
+
+    player = Player(x=START_X, y=START_Y, size=PLAYER_SIZE, speed =PLAYER_SPEED)
 
     ghost1 = Ghost(
-        x=30,
+        x=28,
         y=358,
-        size=30,
-        speed=1,
+        size=32,
+        speed =GHOST_SPEED,
         starting_block=(20, 358),
         target_block=(20, 470),
         ghost_color="red",
     )
     ghost2 = Ghost(
-        x=30,
+        x=32,
         y=24,
-        size=30,
-        speed=1,
+        size=32,
+        speed =GHOST_SPEED,
         starting_block=(30, 28),
         target_block=(420, 28),
         ghost_color="blue",
@@ -131,7 +136,7 @@ def init_entities():
     ghosts.append(ghost2)
 
     # Load walls from a JSON file
-    with open("walls.json", "r") as f:
+    with open("data/walls.json", "r") as f:
         walls_data = json.load(f)
 
     for wall in walls_data:
@@ -139,13 +144,13 @@ def init_entities():
         wall_size = wall["Wall_size"]
         walls.append(create_wall(wallStartBlock, wallEndBlock, wall_size))
 
-    with open("fruits.json", "r") as z:
+    with open("data/fruits.json", "r") as z:
         fruits_data = json.load(z)
 
     for fruit in fruits_data:
         x, y = fruit["position"]
         if fruit["type"] == "normal":
-            fruit_size = 8
+            fruit_size = 4
             fruit_type = "normal"
         elif fruit["type"] == "super":
             fruit_size = 16
@@ -201,6 +206,15 @@ def move_player():
             player.teleport(player.x_pos, new_y)
 
 
+def keep_score():
+    global SCORE, BEST_SCORE
+    draw_score()
+
+    if SCORE > BEST_SCORE:
+        BEST_SCORE = SCORE
+        with open("data/best_score.txt", "w") as f:
+            f.write(str(BEST_SCORE))
+
 def create_wall(start_block, end_block, wall_size):
     x, y = 0, 0
     length, height = 0, 0
@@ -221,16 +235,20 @@ def create_wall(start_block, end_block, wall_size):
 
 
 def draw_score():
-    global SCORE, lives, BEST_SCORE
+    global SCORE, BEST_SCORE, lives
 
     string = "SCORE : " + str(SCORE)
     draw_text(string, x=10, y=WINDOW_HEIGHT - 25)
-    string = "LIVES : " + str(lives)
-    draw_text(string, WINDOW_WIDTH - 110, y=WINDOW_HEIGHT - 25)
     string = "BEST SCORE"
     draw_text(string, WINDOW_WIDTH - 280, WINDOW_HEIGHT - 20)
     string = str(BEST_SCORE)
     draw_text(string, WINDOW_WIDTH - 240, WINDOW_HEIGHT - 37)
+
+    for i in range(lives):
+        draw_entity(
+            Rectangle(WINDOW_WIDTH - 40 - i * 40, WINDOW_HEIGHT - 20, 32, 32),
+            sprite_id["pac_life"],
+        )
 
 
 def draw_level():
@@ -261,14 +279,14 @@ def draw_text(string, x, y):
 
 def draw_ghosts():
     global ghosts, player
-    
+
     for ghost in ghosts:
         if player.empowered:
             ghost_tex = [8, 9]
         else:
             ghost_tex = ghost.texture_ids
 
-        draw_from_atlas(ghost,sprite_id["ghosts"],GHOST_ATLAS_SIZE, ghost_tex)
+        draw_from_atlas(ghost, sprite_id["ghosts"], GHOST_ATLAS_SIZE, ghost_tex)
 
 
 def check_collision():
@@ -340,54 +358,35 @@ def game_loop(frame):
 
 
 ########################################################
-
-
-# noinspection PyShadowingNames
-def generate_fruits(n):
-    global fruits
-    fruit_radius = 10
-    while len(fruits) < n:
-        x = randint(1, 56) * 8
-        y = randint(1, 61) * 8
-
-        fruit = Fruit(x, y, fruit_radius)
-        if is_colliding_walls(fruit, walls):
-            continue
-        fruits.append(fruit)
-
-    return fruits
-
+############### Drawing Functions ######################
+########################################################
 
 def draw_fruits():
     for fruit in fruits:
         if fruit.type == "normal":
-            draw_entity(fruit, 13)
+            draw_entity(fruit, sprite_id["pellete"])
         elif fruit.type == "super":
-            draw_entity(fruit, 10)
+            draw_entity(fruit, sprite_id["power_pellete"])
 
 
 def draw_walls():
-    glColor(1, 1, 1)  # Pink color
     for wall in walls:
         wall.draw()
 
 
 def draw_game():
-    global SCORE, lives, player
+    global player
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
-    draw_score()
+    keep_score()
+
     draw_level()
-
     draw_fruits()
-
     draw_walls()  # TODO : WALLS VISIBILITY
-
     draw_ghosts()
 
-    # draw(player,player.texture_ids)
     draw_from_atlas(player, sprite_id["pacman"], PLAYER_ATLAS_SIZE, player.texture_ids)
     move_player()
     check_collision()

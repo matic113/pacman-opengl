@@ -13,6 +13,7 @@ sprites = {
     "pellete": "res/image/pellete.png",
     "power_pellete": "res/image/power_pellete.png",
     "level": "res/image/level.png",
+    "pac_life": "res/image/pac_life.png"
 }
 
 sprite_id = {
@@ -21,6 +22,7 @@ sprite_id = {
     "pellete": 2,
     "power_pellete": 3,
     "level": 4,
+    "pac_life": 5,
 }
 
 
@@ -91,53 +93,7 @@ def loadTextures():
 
     for key, value in sprites.items():
         load_and_setup(value, sprite_id[key])
-
-
-def draw_player(Player, texture_ids):
-    rect = Player.rect
-
-    global ANIMATION_FRAME
-    global FRAME_DURATION
-    texture = 0
-    if type(texture_ids) == list:
-        if Player.is_moving:
-            if ANIMATION_FRAME < FRAME_DURATION:
-                texture = texture_ids[0]
-            elif ANIMATION_FRAME > FRAME_DURATION:
-                texture = texture_ids[1]
-
-            ANIMATION_FRAME = (
-                ANIMATION_FRAME + 1 if ANIMATION_FRAME < 2 * FRAME_DURATION else 0
-            )
-        else:
-            texture = 12  # pacman_start texture ID
-
-    else:
-        texture = texture_ids
-
-    glBindTexture(
-        GL_TEXTURE_2D, texture_names[texture]
-    )  # repeat this if you want to bind another texture
-
-    glBegin(GL_QUADS)
-    glTexCoord2f(0, 0)  # TODO IMPORTANT: glTexCoord2f must come first before glVertex2d
-    glVertex2d(rect.left, rect.bottom)
-
-    glTexCoord2f(1, 0)
-    glVertex2d(rect.right, rect.bottom)
-
-    glTexCoord2f(1, 1)
-    glVertex2d(rect.right, rect.top)
-
-    glTexCoord2f(0, 1)
-    glVertex2d(rect.left, rect.top)
-
-    glEnd()
-
-    glBindTexture(GL_TEXTURE_2D, -1)
-
-    # glutSwapBuffers()
-
+        
 
 def draw_entity(entity, texture_id):
     # glClear(GL_COLOR_BUFFER_BIT)
@@ -177,7 +133,7 @@ def draw_from_atlas(entity, sprite_atlas_id, atlas_size, texture_idx):
     if hasattr(entity, "rect"):
         rect = entity.rect
 
-    texture = 0
+    texture = texture_idx[0]
 
     if type(texture_idx) == list:
         if hasattr(entity, "is_moving") and not entity.is_moving:
@@ -200,9 +156,7 @@ def draw_from_atlas(entity, sprite_atlas_id, atlas_size, texture_idx):
     )  # repeat this if you want to bind another texture
 
     glBegin(GL_QUADS)
-    glTexCoord2f(
-        tex_coord, 0
-    )  # TODO IMPORTANT: glTexCoord2f must come first before glVertex2d
+    glTexCoord2f(tex_coord, 0)
     glVertex2d(rect.left, rect.bottom)
 
     glTexCoord2f(tex_coord + sprite_width, 0)
