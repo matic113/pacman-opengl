@@ -1,6 +1,4 @@
 from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
 
 
 class Rectangle:
@@ -20,6 +18,7 @@ class Rectangle:
         glVertex(self.right, self.top, 0)
         glVertex(self.left, self.top, 0)
         glEnd()
+
 
 class Circle:
     # noinspection PyShadowingNames

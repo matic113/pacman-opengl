@@ -1,7 +1,6 @@
 import json
+import sys
 import time
-from math import cos, sin
-from random import randint
 
 import pygame
 from OpenGL.GL import *
@@ -111,13 +110,13 @@ def init_entities():
     with open("data/best_score.txt", "r") as f:
         BEST_SCORE = int(f.read())
 
-    player = Player(x=START_X, y=START_Y, size=PLAYER_SIZE, speed =PLAYER_SPEED)
+    player = Player(x=START_X, y=START_Y, size=PLAYER_SIZE, speed=PLAYER_SPEED)
 
     ghost1 = Ghost(
         x=28,
         y=358,
         size=32,
-        speed =GHOST_SPEED,
+        speed=GHOST_SPEED,
         starting_block=(20, 358),
         target_block=(20, 470),
         ghost_color="red",
@@ -126,7 +125,7 @@ def init_entities():
         x=32,
         y=24,
         size=32,
-        speed =GHOST_SPEED,
+        speed=GHOST_SPEED,
         starting_block=(30, 28),
         target_block=(420, 28),
         ghost_color="blue",
@@ -214,6 +213,7 @@ def keep_score():
         BEST_SCORE = SCORE
         with open("data/best_score.txt", "w") as f:
             f.write(str(BEST_SCORE))
+
 
 def create_wall(start_block, end_block, wall_size):
     x, y = 0, 0
@@ -303,7 +303,7 @@ def check_collision():
                 playDeathAnimation(player)
 
     for fruit in fruits:
-        if is_colliding_rect(player.rect, fruit.rect):
+        if is_colliding_fruit(player, fruit):
             fruits.remove(fruit)
             if fruit.type == "normal":
                 SCORE += 10
@@ -360,6 +360,7 @@ def game_loop(frame):
 ########################################################
 ############### Drawing Functions ######################
 ########################################################
+
 
 def draw_fruits():
     for fruit in fruits:

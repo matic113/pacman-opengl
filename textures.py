@@ -13,7 +13,7 @@ sprites = {
     "pellete": "res/image/pellete.png",
     "power_pellete": "res/image/power_pellete.png",
     "level": "res/image/level.png",
-    "pac_life": "res/image/pac_life.png"
+    "pac_life": "res/image/pac_life.png",
 }
 
 sprite_id = {
@@ -93,7 +93,7 @@ def loadTextures():
 
     for key, value in sprites.items():
         load_and_setup(value, sprite_id[key])
-        
+
 
 def draw_entity(entity, texture_id):
     # glClear(GL_COLOR_BUFFER_BIT)
