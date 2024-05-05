@@ -26,7 +26,7 @@ RIBBON_HEIGHT = 40
 FRAME_INTERVAL = 20  # try  1000 msec
 
 PLAYER_SIZE = 32
-PLAYER_SPEED = 4
+PLAYER_SPEED = 3
 
 GHOST_SPEED = PLAYER_SPEED
 
@@ -211,13 +211,13 @@ def move_player():
         new_y = player.y_pos
         
         if player.requested_direction == "Moving Right":
-            new_x = player.x_pos + 8
+            new_x = player.x_pos + 4
         if player.requested_direction == "Moving Left":
-            new_x = player.x_pos - 8
+            new_x = player.x_pos - 4
         if player.requested_direction == "Moving Up":
-            new_y = player.y_pos + 8
+            new_y = player.y_pos + 4
         if player.requested_direction == "Moving Down":
-            new_y = player.y_pos - 8
+            new_y = player.y_pos - 4
 
         turn_buffer.teleport(new_x, new_y)
 

@@ -6,23 +6,23 @@
     },
     {
         "Wall_id": 2,
-        "Wall_cords": [ [ 54, 440 ], [ 84, 440 ] ],
-        "Wall_size": 30
+        "Wall_cords": [ [ 54, 440 ], [ 83, 440 ] ],
+        "Wall_size": 28
     },
     {
         "Wall_id": 3,
         "Wall_cords": [ [ 136, 440 ], [ 179, 440 ] ],
-        "Wall_size": 30
+        "Wall_size": 28
     },
     {
         "Wall_id": 4,
         "Wall_cords": [ [ 278, 440 ], [ 324, 440 ] ],
-        "Wall_size": 30
+        "Wall_size": 28
     },
     {
         "Wall_id": 5,
         "Wall_cords": [ [ 374, 440 ], [ 404, 440 ] ],
-        "Wall_size": 30
+        "Wall_size": 28
     },
     {
         "Wall_id": 6,
@@ -111,12 +111,12 @@
     },
     {
         "Wall_id": 24,
-        "Wall_cords": [ [ 131, 142 ], [ 183, 142 ] ],
+        "Wall_cords": [ [ 131.5, 143 ], [ 183, 143 ] ],
         "Wall_size": 10
     },
     {
         "Wall_id": 25,
-        "Wall_cords": [ [ 274, 142 ], [ 327, 142 ] ],
+        "Wall_cords": [ [ 274, 143 ], [ 327, 143 ] ],
         "Wall_size": 10
     },
     {
@@ -238,7 +238,7 @@
     },
     {
         "Wall_id": 49,
-        "Wall_cords": [ [ 134, 55 ], [ 134, 99 ] ],
+        "Wall_cords": [ [ 133.5, 55 ], [ 133.5, 99 ] ],
         "Wall_size": 10
     },
     {
