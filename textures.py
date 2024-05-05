@@ -14,6 +14,7 @@ sprites = {
     "power_pellete": "res/image/power_pellete.png",
     "level": "res/image/level.png",
     "pac_life": "res/image/pac_life.png",
+    "arrow": "res/image/arrow.png",
 }
 
 sprite_id = {
@@ -23,6 +24,7 @@ sprite_id = {
     "power_pellete": 3,
     "level": 4,
     "pac_life": 5,
+    "arrow": 6,
 }
 
 
@@ -132,10 +134,12 @@ def draw_from_atlas(entity, sprite_atlas_id, atlas_size, texture_idx):
 
     if hasattr(entity, "rect"):
         rect = entity.rect
+    else:
+        rect = entity
 
     texture = texture_idx[0]
 
-    if type(texture_idx) == list:
+    if type(texture_idx) == list and len(texture_idx) > 1:
         if hasattr(entity, "is_moving") and not entity.is_moving:
             texture = 0
         else:

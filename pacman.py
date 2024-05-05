@@ -26,7 +26,7 @@ RIBBON_HEIGHT = 40
 FRAME_INTERVAL = 20  # try  1000 msec
 
 PLAYER_SIZE = 32
-PLAYER_SPEED = 2
+PLAYER_SPEED = 4
 
 GHOST_SPEED = PLAYER_SPEED
 
@@ -45,9 +45,11 @@ PLAYER_DEATH_ATLAS_SIZE = 11
 def init_sound():
     pygame.mixer.init()
 
-    global eat_sound, game_over_sound, death_sound
+    global eat_sound, power_pellete, death_sound, eat_ghost
     eat_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_chomp.wav")
     death_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_death.wav")
+    eat_ghost = pygame.mixer.Sound("res/audio/sound_effects/pacman_eatghost.wav")
+    power_pellete = pygame.mixer.Sound("res/audio/sound_effects/power_pellete.wav")
 
 
 def playDeathAnimation(player):
@@ -105,12 +107,13 @@ def init_window():
 
 
 def init_entities():
-    global player, walls, ghosts, fruits, BEST_SCORE
+    global player, walls, ghosts, fruits, BEST_SCORE, turn_buffer
 
     with open("data/best_score.txt", "r") as f:
         BEST_SCORE = int(f.read())
 
     player = Player(x=START_X, y=START_Y, size=PLAYER_SIZE, speed=PLAYER_SPEED)
+    turn_buffer = player.clone()
 
     ghost1 = Ghost(
         x=28,
@@ -175,36 +178,76 @@ def debug_player(player):
 
 
 def move_player():
-    global player
+    global player, turn_buffer
 
-    if player.direction == "Moving Right":
-        new_x = player.x_pos + player.speed
-        new_y = player.y_pos
-    if player.direction == "Moving Left":
-        new_x = player.x_pos - player.speed
-        new_y = player.y_pos
-    if player.direction == "Moving Up":
+    if player.requested_direction == player.direction: # player is moving in the same direction as requested
         new_x = player.x_pos
-        new_y = player.y_pos + player.speed
-    if player.direction == "Moving Down":
-        new_x = player.x_pos
-        new_y = player.y_pos - player.speed
+        new_y = player.y_pos
+        
+        if player.direction == "Moving Right":
+            new_x = player.x_pos + player.speed
+            new_y = player.y_pos
+        if player.direction == "Moving Left":
+            new_x = player.x_pos - player.speed
+            new_y = player.y_pos
+        if player.direction == "Moving Up":
+            new_x = player.x_pos
+            new_y = player.y_pos + player.speed
+        if player.direction == "Moving Down":
+            new_x = player.x_pos
+            new_y = player.y_pos - player.speed
 
-    new_player = player.clone()
-    new_player.teleport(new_x, new_y)
+        turn_buffer.teleport(new_x, new_y)
+        if not is_colliding_walls(turn_buffer, walls) and player.can_move:
+            player.teleport(turn_buffer.x_pos, turn_buffer.y_pos)
 
-    # Check if the new position is within the game window
-    if not is_colliding_walls(new_player, walls) and player.can_move:
-            
-            player.teleport(new_x, player.y_pos)
-            player.teleport(player.x_pos, new_y)
-
-            #Portal Effect
             if new_x > WINDOW_WIDTH:
                 player.teleport(0, player.y_pos)
             if new_x < 0:
                 player.teleport(WINDOW_WIDTH, player.y_pos)
 
+    elif player.requested_direction != player.direction:
+        new_x = player.x_pos
+        new_y = player.y_pos
+        
+        if player.requested_direction == "Moving Right":
+            new_x = player.x_pos + 8
+        if player.requested_direction == "Moving Left":
+            new_x = player.x_pos - 8
+        if player.requested_direction == "Moving Up":
+            new_y = player.y_pos + 8
+        if player.requested_direction == "Moving Down":
+            new_y = player.y_pos - 8
+
+        turn_buffer.teleport(new_x, new_y)
+
+        if not is_colliding_walls(turn_buffer, walls):
+            player.direction = player.requested_direction
+            player.teleport(new_x, new_y)
+
+        else:
+            if player.direction == "Moving Right":
+                new_x = player.x_pos + player.speed
+                new_y = player.y_pos
+            if player.direction == "Moving Left":
+                new_x = player.x_pos - player.speed
+                new_y = player.y_pos
+            if player.direction == "Moving Up":
+                new_x = player.x_pos
+                new_y = player.y_pos + player.speed
+            if player.direction == "Moving Down":
+                new_x = player.x_pos
+                new_y = player.y_pos - player.speed
+
+            turn_buffer.teleport(new_x, new_y)
+            if not is_colliding_walls(turn_buffer, walls) and player.can_move:
+                player.teleport(turn_buffer.x_pos, turn_buffer.y_pos)
+
+                if new_x > WINDOW_WIDTH:
+                    player.teleport(0, player.y_pos)
+                if new_x < 0:
+                    player.teleport(WINDOW_WIDTH, player.y_pos)
+    
 
 
 def keep_score():
@@ -299,6 +342,7 @@ def check_collision():
 
         if is_colliding_rect(player, ghost):
             if player.empowered:
+                eat_ghost.play()
                 ghosts.remove(ghost)
                 SCORE += 200
             else:
@@ -309,11 +353,11 @@ def check_collision():
             fruits.remove(fruit)
             if fruit.type == "normal":
                 SCORE += 10
+                eat_sound.play()    
             elif fruit.type == "super":
                 player.empowered = True
                 SCORE += 50
-            eat_sound.play()
-
+                power_pellete.play()
 
 ####################################
 ############# callbacks  ###########
@@ -330,17 +374,13 @@ def special_keys_callback(key, x, y):
     global player
 
     if key == GLUT_KEY_RIGHT:
-        player.direction = "Moving Right"
-        player.texture_ids = [1, 2]
+        player.requested_direction = "Moving Right"
     if key == GLUT_KEY_LEFT:
-        player.direction = "Moving Left"
-        player.texture_ids = [3, 4]
+        player.requested_direction = "Moving Left"
     if key == GLUT_KEY_UP:
-        player.direction = "Moving Up"
-        player.texture_ids = [5, 6]
+        player.requested_direction = "Moving Up"
     if key == GLUT_KEY_DOWN:
-        player.direction = "Moving Down"
-        player.texture_ids = [7, 8]
+        player.requested_direction = "Moving Down"
 
 
 # def mouse_callback(x, y):
@@ -362,7 +402,29 @@ def game_loop(frame):
 ########################################################
 ############### Drawing Functions ######################
 ########################################################
+def draw_player():
+    global player
+    arrow_x = player.x_pos
+    arrow_y = player.y_pos
+    arrow_distance = 24
 
+    if player.requested_direction == "Moving Right":
+        arrow_tex = 0
+        arrow_x += arrow_distance
+    if player.requested_direction == "Moving Left":
+        arrow_tex = 1
+        arrow_x -= arrow_distance
+    if player.requested_direction == "Moving Up":
+        arrow_tex = 2
+        arrow_y += arrow_distance
+    if player.requested_direction == "Moving Down":
+        arrow_tex = 3
+        arrow_y -= arrow_distance
+
+    arrow = Rectangle(arrow_x, arrow_y, 16, 16)
+    draw_from_atlas(arrow, sprite_id["arrow"], 5, [arrow_tex])
+    draw_from_atlas(player, sprite_id["pacman"], PLAYER_ATLAS_SIZE, player.get_texture_ids())
+    player.end_frame()
 
 def draw_fruits():
     for fruit in fruits:
@@ -373,12 +435,13 @@ def draw_fruits():
 
 
 def draw_walls():
+    #turn_buffer.rect.draw()
+    
     for wall in walls:
         wall.draw()
-
+    
 
 def draw_game():
-    global player
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
@@ -389,11 +452,10 @@ def draw_game():
     draw_fruits()
     draw_walls()  # TODO : WALLS VISIBILITY
     draw_ghosts()
+    draw_player()
 
-    draw_from_atlas(player, sprite_id["pacman"], PLAYER_ATLAS_SIZE, player.texture_ids)
     move_player()
     check_collision()
-    player.end_frame()
 
     glutSwapBuffers()
 

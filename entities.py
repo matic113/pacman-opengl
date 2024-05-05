@@ -23,11 +23,24 @@ class Player:
         self.speed = speed
         self.rect = Rectangle(x, y, size, size)
         self.direction = "Moving Right"
+        self.requested_direction = self.direction
         self.texture_ids = [1, 2]
         self.frame_counter = 0
         self.can_move = True
         self.empowered = False
         self.empowered_timer = 0
+
+    def get_texture_ids(self) -> list:
+        """Return the texture IDs for the player."""
+
+        if self.direction == "Moving Right":
+            return [1, 2]
+        if self.direction == "Moving Left":
+            return [3, 4]
+        if self.direction == "Moving Up":
+            return [5, 6]
+        if self.direction == "Moving Down":
+            return [7, 8]
 
     def clone(self) -> "Player":
         """Create a copy of the player."""
