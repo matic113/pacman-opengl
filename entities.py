@@ -87,7 +87,6 @@ class Ghost:
         target_block: tuple,
         ghost_color: str,
     ):
-        """Initialize a new ghost."""
         self.x_pos = x
         self.y_pos = y
         self.length = size
@@ -111,7 +110,7 @@ class Ghost:
         )
 
     def move(self):
-        """Move the ghost."""
+        """Move the ghost from Start to Target and vice versa. Note that StartBlock < TargetBlock."""
         new_x = self.x_pos
         new_y = self.y_pos
 
