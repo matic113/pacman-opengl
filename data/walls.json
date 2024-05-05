@@ -156,7 +156,7 @@
     },
 
     {
-        "Comment": "Beggining of Vertical Walls",
+        "Comment": "Beginning of Vertical Walls",
         "Wall_id": 33,
         "Wall_cords": [ [ 6, 342 ], [ 6, 492 ] ],
         "Wall_size": 8
