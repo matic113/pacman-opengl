@@ -134,8 +134,28 @@ def init_entities():
         ghost_color="blue",
     )
 
+  ghost3 = Ghost(
+        x=200,
+        y=170,
+        size=32,
+        speed=GHOST_SPEED,
+        starting_block=(30, 28),
+        target_block=(200, 28),
+        ghost_color="pink",
+    )
+    ghost4 = Ghost(
+        x=350,
+        y=358,
+        size=32,
+        speed=GHOST_SPEED,
+        starting_block=(200, 80),
+        target_block=(200, 480),
+        ghost_color="yellow",
+    )
     ghosts.append(ghost1)
     ghosts.append(ghost2)
+    ghosts.append(ghost3)
+    ghosts.append(ghost4)
 
     # Load walls from a JSON file
     with open("data/walls.json", "r") as f:
