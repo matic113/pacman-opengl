@@ -116,12 +116,12 @@ def init_entities():
     turn_buffer = player.clone()
 
     ghost1 = Ghost(
-        x=28,
-        y=358,
+        x=30,
+        y=409,
         size=32,
         speed=GHOST_SPEED,
-        starting_block=(20, 358),
-        target_block=(20, 470),
+        starting_block=(30, 408),
+        target_block=(426, 408),
         ghost_color="red",
     )
     ghost2 = Ghost(
@@ -146,7 +146,6 @@ def init_entities():
     ghosts.append(ghost1)
     ghosts.append(ghost2)
     ghosts.append(ghost3)
-
 
     # Load walls from a JSON file
     with open("data/walls.json", "r") as f:
@@ -191,10 +190,12 @@ def debug_player(player):
 def move_player():
     global player, turn_buffer
 
-    if player.requested_direction == player.direction: # player is moving in the same direction as requested
+    if (
+        player.requested_direction == player.direction
+    ):  # player is moving in the same direction as requested
         new_x = player.x_pos
         new_y = player.y_pos
-        
+
         if player.direction == "Moving Right":
             new_x = player.x_pos + player.speed
             new_y = player.y_pos
@@ -220,7 +221,7 @@ def move_player():
     elif player.requested_direction != player.direction:
         new_x = player.x_pos
         new_y = player.y_pos
-        
+
         if player.requested_direction == "Moving Right":
             new_x = player.x_pos + 4
         if player.requested_direction == "Moving Left":
@@ -258,7 +259,6 @@ def move_player():
                     player.teleport(0, player.y_pos)
                 if new_x < 0:
                     player.teleport(WINDOW_WIDTH, player.y_pos)
-    
 
 
 def keep_score():
@@ -364,11 +364,12 @@ def check_collision():
             fruits.remove(fruit)
             if fruit.type == "normal":
                 SCORE += 10
-                eat_sound.play()    
+                eat_sound.play()
             elif fruit.type == "super":
                 player.empowered = True
                 SCORE += 50
                 power_pellete.play()
+
 
 ####################################
 ############# callbacks  ###########
@@ -434,8 +435,11 @@ def draw_player():
 
     arrow = Rectangle(arrow_x, arrow_y, 16, 16)
     draw_from_atlas(arrow, sprite_id["arrow"], 5, [arrow_tex])
-    draw_from_atlas(player, sprite_id["pacman"], PLAYER_ATLAS_SIZE, player.get_texture_ids())
+    draw_from_atlas(
+        player, sprite_id["pacman"], PLAYER_ATLAS_SIZE, player.get_texture_ids()
+    )
     player.end_frame()
+
 
 def draw_fruits():
     for fruit in fruits:
@@ -446,14 +450,13 @@ def draw_fruits():
 
 
 def draw_walls():
-    #turn_buffer.rect.draw()
-    
+    # turn_buffer.rect.draw()
+
     for wall in walls:
         wall.draw()
-    
+
 
 def draw_game():
-
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
