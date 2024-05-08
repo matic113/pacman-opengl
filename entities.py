@@ -1,3 +1,5 @@
+import random
+
 from collision import *
 from shapes import *
 from textures import *
@@ -26,7 +28,7 @@ class Player:
         self.requested_direction = self.direction
         self.texture_ids = [1, 2]
         self.frame_counter = 0
-        self.can_move = True
+        self.can_move = False
         self.empowered = False
         self.empowered_timer = 0
 
@@ -76,6 +78,7 @@ class Ghost:
     ghost_textures = {"yellow": [0, 1], "red": [2, 3], "blue": [4, 5], "pink": [6, 7]}
     MOVE_TO_TARGET = 1
     MOVE_TO_START = -1
+    direction_stack = []
 
     def __init__(
         self,
@@ -83,18 +86,17 @@ class Ghost:
         y: int,
         size: int,
         speed: int,
-        starting_block: tuple,
-        target_block: tuple,
         ghost_color: str,
+        nearby_blocks: list,
     ):
         self.x_pos = x
         self.y_pos = y
         self.length = size
         self.speed = speed
+        self.nearby_blocks = nearby_blocks
         self.rect = Rectangle(x, y, size, size)
-        self.direction = self.MOVE_TO_TARGET
-        self.start = starting_block
-        self.target = target_block
+        self.state = self.MOVE_TO_TARGET
+        self.direction = random.choice(self.nearby_blocks)
         self.texture_ids = self.ghost_textures[ghost_color]
 
     def clone(self) -> "Ghost":
@@ -109,45 +111,49 @@ class Ghost:
             self.ghost_color,
         )
 
-    def move(self):
-        """Move the ghost from Start to Target and vice versa. Note that StartBlock < TargetBlock."""
+    def change_direction(self):
+        direction = random.choice(self.nearby_blocks)
+
+        while len(self.direction_stack) > 2 and direction == self.direction_stack[-2]:
+            direction = random.choice(self.nearby_blocks)
+
+        self.direction_stack.append(direction)
+
+        self.direction = direction
+
+    def move_to_block(self, block, walls):
+        """Move the ghost to a specific block."""
         new_x = self.x_pos
         new_y = self.y_pos
 
-        if self.start[0] == self.target[0]:
-            if self.direction == self.MOVE_TO_TARGET:  # Move to target
-                if self.y_pos < self.target[1]:
-                    new_y += self.speed
-                else:  # Reached Target
-                    self.direction = self.MOVE_TO_START
-            else:  # Move to Start
-                if self.y_pos > self.start[1]:
-                    new_y -= self.speed
-                else:
-                    self.direction = self.MOVE_TO_TARGET
+        if self.x_pos < block[0]:
+            new_x += self.speed
+        elif self.x_pos > block[0]:
+            new_x -= self.speed
 
-        if self.start[1] == self.target[1]:  # Ghost is moving horizontally
-            if self.direction == self.MOVE_TO_TARGET:  # Move to target
-                if self.x_pos < self.target[0]:
-                    new_x += self.speed
-                else:  # Reached Target
-                    self.direction = self.MOVE_TO_START
-            else:  # Move to Start
-                if self.x_pos > self.start[0]:
-                    new_x -= self.speed
-                else:
-                    self.direction = self.MOVE_TO_TARGET
+        if self.y_pos < block[1]:
+            new_y += self.speed
+        elif self.y_pos > block[1]:
+            new_y -= self.speed
 
-        if new_x - self.length / 2 > 0 and new_x + self.length / 2 < WINDOW_WIDTH:
-            self.x_pos = new_x
+        if is_colliding_walls(self, walls):
+            self.change_direction()
+            return
 
-        if (
-            new_y - self.length / 2 > 0
-            and new_y + self.length / 2 < WINDOW_HEIGHT - RIBBON_HEIGHT
-        ):
-            self.y_pos = new_y
+        else:
+            self.teleport(new_x, new_y)
 
-        self.rect = Rectangle(self.x_pos, self.y_pos, self.length, self.length)
+            if block == (new_x, new_y):
+                self.change_direction()
+
+    def move_randomly(self, walls):
+        position = (self.x_pos, self.y_pos)
+
+        if not (self.x_pos == self.direction[0] or self.y_pos == self.direction[1]):
+            self.change_direction()
+            return
+
+        self.move_to_block(self.direction, walls)
 
     def teleport(self, x: int, y: int):
         """Move the ghost to a new position instantly."""

@@ -43,7 +43,7 @@ GHOST_ATLAS_SIZE = 11
 PLAYER_DEATH_ATLAS_SIZE = 11
 
 # States
-
+SOUND_STARTED = False
 GAME_STARTED = False
 LEVEL_STARTED = False
 ##################Load Sounds###########
@@ -52,11 +52,12 @@ LEVEL_STARTED = False
 def init_sound():
     pygame.mixer.init()
 
-    global eat_sound, power_pellete, death_sound, eat_ghost
+    global eat_sound, power_pellete, death_sound, eat_ghost, theme_song
     eat_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_chomp.wav")
     death_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_death.wav")
     eat_ghost = pygame.mixer.Sound("res/audio/sound_effects/pacman_eatghost.wav")
     power_pellete = pygame.mixer.Sound("res/audio/sound_effects/power_pellete.wav")
+    theme_song = pygame.mixer.Sound("res/audio/sound_effects/siren_1.wav")
 
 
 def playDeathAnimation(player):
@@ -69,7 +70,7 @@ def playDeathAnimation(player):
     player.teleport(START_X, START_Y)
     player.can_move = True
     LEVEL_STARTED = False
-    
+
     if lives == 0:
         sys.exit(0)
 
@@ -122,38 +123,46 @@ def init_entities():
 
     player = Player(x=START_X, y=START_Y, size=PLAYER_SIZE, speed=PLAYER_SPEED)
     turn_buffer = player.clone()
+    top_part = [
+        (30, 362),
+        (30, 470),
+        (30, 408),
+        (106, 362),
+        (106, 470),
+        (106, 408),
+        (202, 470),
+        (202, 408),
+        (250, 408),
+        (298, 408),
+    ]
+    pinks_blocks = [(107, 72), (107, 168), (200, 168), (26, 168), (26, 120), (107, 264)]
+    yellow_blocks = [
+        (298, 72),
+        (298, 120),
+        (346, 120),
+        (426, 168),
+        (250, 168),
+        (346, 264),
+        (346, 168),
+    ]
 
     ghost1 = Ghost(
-        x=30,
-        y=409,
-        size=32,
-        speed=GHOST_SPEED,
-        starting_block=(30, 408),
-        target_block=(426, 408),
-        ghost_color="red",
+        x=30, y=408, size=32, speed=2, ghost_color="red", nearby_blocks=top_part
     )
     ghost2 = Ghost(
-        x=32,
-        y=24,
-        size=32,
-        speed=GHOST_SPEED,
-        starting_block=(30, 28),
-        target_block=(420, 28),
-        ghost_color="blue",
+        x=107, y=72, size=32, speed=2, ghost_color="pink", nearby_blocks=pinks_blocks
     )
     ghost3 = Ghost(
-        x=230,
-        y=24,
-        size=32,
-        speed=GHOST_SPEED,
-        starting_block=(30, 28),
-        target_block=(420, 28),
-        ghost_color="pink",
+        x=298, y=72, size=32, speed=2, ghost_color="yellow", nearby_blocks=yellow_blocks
+    )
+    ghost4 = Ghost(
+        x=426, y=408, size=32, speed=2, ghost_color="blue", nearby_blocks=top_part
     )
 
     ghosts.append(ghost1)
     ghosts.append(ghost2)
     ghosts.append(ghost3)
+    ghosts.append(ghost4)
 
     # Load walls from a JSON file
     with open("data/walls.json", "r") as f:
@@ -241,7 +250,7 @@ def move_player():
 
         turn_buffer.teleport(new_x, new_y)
 
-        if not is_colliding_walls(turn_buffer, walls):
+        if not is_colliding_walls(turn_buffer, walls) and player.can_move:
             player.direction = player.requested_direction
             player.teleport(new_x, new_y)
 
@@ -288,7 +297,6 @@ def create_wall(start_block, end_block, wall_size):
         y = (start_block[1] + end_block[1]) / 2
         length = wall_size
         height = abs(start_block[1] - end_block[1]) + wall_size / 2
-
     if start_block[1] == end_block[1]:  # Horizontal Wall
         x = (start_block[0] + end_block[0]) / 2
         y = start_block[1]
@@ -379,7 +387,7 @@ def check_collision():
     global ghosts, player, fruits, lives, SCORE
 
     for ghost in ghosts:
-        ghost.move()
+        ghost.move_randomly(walls)
 
         if is_colliding_rect(player, ghost):
             if player.empowered:
@@ -421,12 +429,16 @@ def special_keys_callback(key, x, y):
 
     if key == GLUT_KEY_RIGHT:
         player.requested_direction = "Moving Right"
+        player.can_move = True
     if key == GLUT_KEY_LEFT:
         player.requested_direction = "Moving Left"
+        player.can_move = True
     if key == GLUT_KEY_UP:
         player.requested_direction = "Moving Up"
+        player.can_move = True
     if key == GLUT_KEY_DOWN:
         player.requested_direction = "Moving Down"
+        player.can_move = True
 
 
 # def mouse_callback(x, y):
@@ -491,6 +503,7 @@ def draw_walls():
 
 
 def draw_game():
+    global SOUND_STARTED
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
@@ -505,13 +518,18 @@ def draw_game():
         time.sleep(2)
         return
 
+    if not SOUND_STARTED:
+        theme_song.play(-1)
+        SOUND_STARTED = True
+
+    move_player()
+
     draw_level()
     draw_player()
     draw_fruits()
     draw_ghosts()
-    # draw_walls()
     check_collision()
-    move_player()
+    # draw_walls()
     keep_score()
 
     glutSwapBuffers()
@@ -520,9 +538,9 @@ def draw_game():
 def main():
     init_entities()
     init_sound()
-
-    # openGL Intialization
     init_window()
+
+    # OPENGL CODE
     glutDisplayFunc(draw_game)
     glutTimerFunc(FRAME_INTERVAL, game_loop, 1)
     glutKeyboardFunc(keyboard_callback)

@@ -148,6 +148,7 @@ def draw_from_atlas(entity, sprite_atlas_id, atlas_size, texture_idx):
     if type(texture_idx) == list and len(texture_idx) > 1:
         if hasattr(entity, "is_moving") and not entity.is_moving:
             texture = 0
+
         else:
             if ANIMATION_FRAME < FRAME_DURATION:
                 texture = texture_idx[0]
@@ -161,9 +162,7 @@ def draw_from_atlas(entity, sprite_atlas_id, atlas_size, texture_idx):
     tex_coord = texture * 1 / atlas_size
     sprite_width = 16 / (atlas_size * 16)
 
-    glBindTexture(
-        GL_TEXTURE_2D, texture_names[sprite_atlas_id]
-    )  # repeat this if you want to bind another texture
+    glBindTexture(GL_TEXTURE_2D, texture_names[sprite_atlas_id])
 
     glBegin(GL_QUADS)
     glTexCoord2f(tex_coord, 0)
