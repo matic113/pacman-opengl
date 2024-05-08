@@ -15,6 +15,9 @@ sprites = {
     "level": "res/image/level.png",
     "pac_life": "res/image/pac_life.png",
     "arrow": "res/image/arrow.png",
+    "logo": "res/image/logo.png",
+    "press_key": "res/image/press_key.png",
+    "ready": "res/image/ready.png",
 }
 
 sprite_id = {
@@ -25,6 +28,9 @@ sprite_id = {
     "level": 4,
     "pac_life": 5,
     "arrow": 6,
+    "logo": 7,
+    "press_key": 8,
+    "ready": 9,
 }
 
 

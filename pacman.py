@@ -23,6 +23,9 @@ WINDOW_HEIGHT = 536
 
 RIBBON_HEIGHT = 40
 
+WindowCenterX = WINDOW_WIDTH / 2
+WindowCenterY = (WINDOW_HEIGHT - RIBBON_HEIGHT) / 2
+
 FRAME_INTERVAL = 20  # try  1000 msec
 
 PLAYER_SIZE = 32
@@ -39,6 +42,10 @@ PLAYER_ATLAS_SIZE = 9
 GHOST_ATLAS_SIZE = 11
 PLAYER_DEATH_ATLAS_SIZE = 11
 
+# States
+
+GAME_STARTED = False
+LEVEL_STARTED = False
 ##################Load Sounds###########
 
 
@@ -53,7 +60,7 @@ def init_sound():
 
 
 def playDeathAnimation(player):
-    global lives
+    global lives, LEVEL_STARTED
 
     player.can_move = False
     lives -= 1
@@ -61,7 +68,8 @@ def playDeathAnimation(player):
     time.sleep(1.2)
     player.teleport(START_X, START_Y)
     player.can_move = True
-
+    LEVEL_STARTED = False
+    
     if lives == 0:
         sys.exit(0)
 
@@ -74,8 +82,8 @@ SCORE = 0
 BEST_SCORE = 0
 lives = 3
 
-START_X = 224
-START_Y = 216
+START_X = 227
+START_Y = 120
 
 fruits = []
 
@@ -315,7 +323,29 @@ def draw_level():
         WINDOW_HEIGHT - RIBBON_HEIGHT,
     )
 
+    draw_score()
     draw_entity(level, sprite_id["level"])
+
+
+def draw_start_screen():
+    start_screen = Rectangle(WindowCenterX, WindowCenterY + 80, 256, 48)
+
+    draw_entity(start_screen, sprite_id["logo"])
+    press_key = Rectangle(WindowCenterX, WindowCenterY - 50, 302, 14)
+    draw_from_atlas(press_key, sprite_id["press_key"], 2, [0, 1])
+
+
+def draw_start_level():
+    global LEVEL_STARTED
+    ready = Rectangle(224, 216, 102, 32)
+
+    draw_level()
+    draw_player()
+    draw_fruits()
+    draw_ghosts()
+
+    draw_entity(ready, sprite_id["ready"])
+    LEVEL_STARTED = True
 
 
 def draw_text(string, x, y):
@@ -380,6 +410,10 @@ def check_collision():
 def keyboard_callback(key, x, y):
     if key == b"q":
         sys.exit(0)
+
+    if key == b" ":
+        global GAME_STARTED
+        GAME_STARTED = True
 
 
 def special_keys_callback(key, x, y):
@@ -460,16 +494,25 @@ def draw_game():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
-    keep_score()
+    if not GAME_STARTED:
+        draw_start_screen()
+        glutSwapBuffers()
+        return
+
+    if not LEVEL_STARTED:
+        draw_start_level()
+        glutSwapBuffers()
+        time.sleep(2)
+        return
 
     draw_level()
-    draw_fruits()
-    draw_walls()  # TODO : WALLS VISIBILITY
-    draw_ghosts()
     draw_player()
-
-    move_player()
+    draw_fruits()
+    draw_ghosts()
+    # draw_walls()
     check_collision()
+    move_player()
+    keep_score()
 
     glutSwapBuffers()
 
