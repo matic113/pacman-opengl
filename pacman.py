@@ -1,3 +1,4 @@
+import ctypes
 import json
 import sys
 import time
@@ -9,6 +10,7 @@ from OpenGL.GLUT import *
 
 from collision import *
 from entities import *
+from ghost import *
 from shapes import *
 from textures import *
 
@@ -52,12 +54,15 @@ LEVEL_STARTED = False
 def init_sound():
     pygame.mixer.init()
 
-    global eat_sound, power_pellete, death_sound, eat_ghost, theme_song
+    global eat_sound, power_pellete, death_sound, eat_ghost, theme_song, beginning_sound
     eat_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_chomp.wav")
+    # set the eat_sound to 20% volume
+    eat_sound.set_volume(0.2)
     death_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_death.wav")
     eat_ghost = pygame.mixer.Sound("res/audio/sound_effects/pacman_eatghost.wav")
     power_pellete = pygame.mixer.Sound("res/audio/sound_effects/power_pellete.wav")
     theme_song = pygame.mixer.Sound("res/audio/sound_effects/siren_1.wav")
+    beginning_sound = pygame.mixer.Sound("res/audio/sound_effects/pacman_beginning.wav")
 
 
 def playDeathAnimation(player):
@@ -66,7 +71,7 @@ def playDeathAnimation(player):
     player.can_move = False
     lives -= 1
     death_sound.play()
-    time.sleep(1.2)
+    time.sleep(2)
     player.teleport(START_X, START_Y)
     player.can_move = True
     LEVEL_STARTED = False
@@ -96,12 +101,23 @@ ghosts = []
 ####################################
 ######## graphics helpers ##########
 ####################################
+
+
 # Initialization
 def init_window():
     glutInit()
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA)
+    # Get the screen size
+    user32 = ctypes.windll.user32
+    screen_width = user32.GetSystemMetrics(0)
+    screen_height = user32.GetSystemMetrics(1)
+
+    # Calculate the position of the window
+    window_x = (screen_width - WINDOW_WIDTH) // 2
+    window_y = (screen_height - WINDOW_HEIGHT) // 2
+
     glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT)
-    glutInitWindowPosition(0, 0)
+    glutInitWindowPosition(window_x, window_y)
     glutCreateWindow(b"PacMan OpenGL")
     glClearColor(0.0, 0.0, 0.0, 0.0)
     glDisable(GL_DEPTH_TEST)
@@ -394,6 +410,7 @@ def check_collision():
                 eat_ghost.play()
                 ghosts.remove(ghost)
                 SCORE += 200
+                player.eaten_ghost = True
             else:
                 playDeathAnimation(player)
 
@@ -414,7 +431,6 @@ def check_collision():
 ####################################
 
 
-# noinspection PyUnusedLocal,PyShadowingNames
 def keyboard_callback(key, x, y):
     if key == b"q":
         sys.exit(0)
@@ -460,6 +476,8 @@ def game_loop(frame):
 ########################################################
 ############### Drawing Functions ######################
 ########################################################
+
+
 def draw_player():
     global player
     arrow_x = player.x_pos
@@ -496,7 +514,7 @@ def draw_fruits():
 
 
 def draw_walls():
-    # turn_buffer.rect.draw()
+    turn_buffer.rect.draw()
 
     for wall in walls:
         wall.draw()
@@ -515,7 +533,8 @@ def draw_game():
     if not LEVEL_STARTED:
         draw_start_level()
         glutSwapBuffers()
-        time.sleep(2)
+        beginning_sound.play()
+        time.sleep(4)
         return
 
     if not SOUND_STARTED:
